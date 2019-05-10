@@ -1,0 +1,257 @@
+version: 2.1
+
+
+executors:
+  buildpack:
+    docker:
+      - image: circleci/buildpack-deps:trusty
+    working_directory: ~/src
+
+
+commands:
+  docker_import:
+    description: "Load Docker acrhive from the given directory"
+    parameters:
+      path:
+        type: string
+        description: "Path to directory containing Docker archive to import"
+    steps:
+      - run:
+          name: Import Docker images from archive
+          command: |
+            set -xe
+            IMPORT_PATH="<<parameters.path>>"
+            IMPORT_PATH=${IMPORT_PATH/\~/$HOME}
+
+            mkdir -p "$(dirname "$IMPORT_PATH")"
+            for file in "$IMPORT_PATH"/*.tar; do
+              if [ -f "$file" ]; then
+                printf "\033[0;33mImporting %s to Docker...\033[0;0m\\n" "$file"
+                docker load -i "$file"
+              fi
+            done
+
+  docker_build:
+    description: "Build Dockerfile with the given parameters"
+    parameters:
+      image:
+        type: string
+        description: "Image name to build"
+      dockerfile:
+        type: string
+        description: "Path to Dockerfile"
+        default: "Dockerfile"
+      import:
+        type: string
+        description: "Path to directory containing Docker archive to import"
+        default: "~/docker"
+      export:
+        type: string
+        description: "Path to export Docker image after running build"
+        default: ""
+      persist_path:
+        type: string
+        description: "Path to persist Docker archive"
+        default: "~/docker"
+    steps:
+      - when:
+          condition: <<parameters.import>>
+          steps:
+            - docker_import:
+                path: <<parameters.import>>
+      - run:
+          name: Build Docker image
+          command: |
+            set -xe
+            DOCKERFILE="<<parameters.dockerfile>>"
+            DOCKERFILE=${DOCKERFILE/\~/$HOME}
+
+            BASENAME="$(basename "$DOCKERFILE")"
+            DIRNAME="$(dirname "$DOCKERFILE")"
+
+            cd "$DIRNAME" || exit 1
+            docker build . --cache-from "<<parameters.image>>" -t "<<parameters.image>>" -f "$BASENAME"
+      - when:
+          condition: <<parameters.export>>
+          steps:
+            - run:
+                name: Export Docker image to archive
+                command: |
+                  set -xe
+                  EXPORT_PATH="<<parameters.export>>"
+                  EXPORT_PATH=${EXPORT_PATH/\~/$HOME}
+
+                  mkdir -p $(dirname "$EXPORT_PATH")
+                  docker save -o "$EXPORT_PATH" "<<parameters.image>>"
+
+  docker_push:
+    description: "Publish image to Docker Hub"
+    parameters:
+      image:
+        type: string
+        description: "Image name to push"
+    steps:
+      - run:
+          name: Log in to Docker Hub
+          command: |
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Publish Docker Image
+          command: |
+            set -xe
+            IMAGE_NAME="<<parameters.image>>"
+            if [ "$CIRCLE_BRANCH" = "master" ]; then
+              IMAGE_DATE="$(date -u +%Y%m%d)"
+              docker tag "$IMAGE_NAME" "$IMAGE_NAME:stable"
+              docker tag "$IMAGE_NAME" "$IMAGE_NAME:stable-$IMAGE_DATE"
+              docker push "$IMAGE_NAME:stable"
+              docker push "$IMAGE_NAME:stable-$IMAGE_DATE"
+            else
+              IMAGE_GIT=$(git rev-parse --short HEAD)
+              docker tag "$IMAGE_NAME" "$IMAGE_NAME:dev"
+              docker tag "$IMAGE_NAME" "$IMAGE_NAME:dev-$IMAGE_GIT"
+              docker push "$IMAGE_NAME:dev"
+              docker push "$IMAGE_NAME:dev-$IMAGE_GIT"
+            fi
+
+
+jobs:
+  setup:
+    executor: buildpack
+    steps:
+      - checkout
+      - attach_workspace: &attach_workspace
+          at: ~/
+      - run:
+          description: Compute Dockerfile hashes
+          command: |
+            set -xe
+            cat */Dockerfile* |openssl dgst -sha256 |awk '{ print $2 }' > "docker-elixir-omg-hash"
+      - restore_cache:
+          keys:
+            - v1-docker-elixir-omg-{{ checksum "docker-elixir-omg-hash" }}
+            - v1-docker-elixir-omg-
+      - persist_to_workspace: &persist_workspace
+          name: Persist workspace
+          root: ~/
+          paths:
+            - docker
+            - src
+
+  build_builder_erlang:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-builder-erlang"
+          dockerfile: "builder/Dockerfile.erlang"
+          export: "~/docker/omisegoimages_elixir-omg_builder_erlang.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_builder_erlang.tar
+
+  build_builder_elixir:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-builder-elixir"
+          dockerfile: "builder/Dockerfile.elixir"
+          export: "~/docker/omisegoimages_elixir-omg_builder_elixir.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_builder_elixir.tar
+
+  build_builder:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-builder"
+          dockerfile: "builder/Dockerfile"
+          export: "~/docker/omisegoimages_elixir-omg_builder.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_builder.tar
+
+  publish_builder:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_import:
+          path: "~/docker"
+      - docker_push:
+          image: "omisegoimages/elixir-omg-builder"
+
+  build_deploy:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-deploy"
+          dockerfile: "deploy/Dockerfile"
+          export: "~/docker/omisegoimages_elixir-omg_deploy.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_deploy.tar
+
+  publish_deploy:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_import:
+          path: "~/docker"
+      - docker_push:
+          image: "omisegoimages/elixir-omg-deploy"
+
+  save_cache:
+    executor: buildpack
+    steps:
+      - attach_workspace: *attach_workspace
+      - save_cache:
+          name: Cache builder image artifacts
+          key: v1-docker-elixir-omg-{{ checksum "docker-elixir-omg-hash" }}
+          paths:
+            - ~/docker
+
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - setup
+
+      - build_builder_erlang:
+          requires:
+            - setup
+      - build_builder_elixir:
+          requires:
+            - build_builder_erlang
+      - build_builder:
+          requires:
+            - build_builder_elixir
+      - publish_builder:
+          requires:
+            - build_builder
+
+      - build_deploy:
+          requires:
+            - setup
+      - publish_deploy:
+          requires:
+            - build_deploy
+
+      - save_cache:
+          requires:
+            - publish_builder
+            - publish_deploy
