@@ -19,6 +19,7 @@ ENV LD_LIBRARY_PATH=/usr/local/elixir/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
+ENV PATH=/usr/local/go/bin:$PATH
 
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
@@ -32,6 +33,7 @@ RUN wget https://github.com/ethereum/solidity/releases/download/v0.4.25/solc-sta
 RUN set -xe \
  && apk add --update --no-cache --virtual .utils \
         linux-headers \
+        golang-1.9 \
         bash \
         build-base \
         ca-certificates \
