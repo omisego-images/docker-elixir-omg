@@ -180,6 +180,20 @@ jobs:
           paths:
             - docker/omisegoimages_elixir-omg_builder.tar
 
+  build_tester:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-tester"
+          dockerfile: "tester/Dockerfile"
+          export: "~/docker/omisegoimages_elixir-omg_tester.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_tester.tar
+
   publish_builder:
     executor: buildpack
     steps:
@@ -189,6 +203,16 @@ jobs:
           path: "~/docker"
       - docker_push:
           image: "omisegoimages/elixir-omg-builder"
+
+  publish_tester:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_import:
+          path: "~/docker"
+      - docker_push:
+          image: "omisegoimages/elixir-omg-tester"
 
   build_deploy:
     executor: buildpack
@@ -243,6 +267,12 @@ workflows:
       - publish_builder:
           requires:
             - build_builder
+      - build_tester:
+          requires:
+            - build_builder_elixir
+      - publish_tester:
+          requires:
+            - build_tester
 
       - build_deploy:
           requires:
