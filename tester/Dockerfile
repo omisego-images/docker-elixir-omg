@@ -33,7 +33,6 @@ RUN wget https://github.com/ethereum/solidity/releases/download/v0.4.25/solc-sta
 RUN set -xe \
  && apk add --update --no-cache --virtual .utils \
         linux-headers \
-        golang-1.9 \
         bash \
         build-base \
         ca-certificates \
@@ -71,10 +70,70 @@ RUN set -xe \
  && mkdir -p "${HOME}" \
  && chown -R "${UID}:${GID}" "${HOME}"
 
+# Glibc for 3.8 alpine
+# https://hub.docker.com/r/frolvlad/alpine-glibc/dockerfile
+# Here we install GNU libc (aka glibc) and set C.UTF-8 locale as default.
+RUN ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download" && \
+    ALPINE_GLIBC_PACKAGE_VERSION="2.29-r0" && \
+    ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
+    ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
+    ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
+    apk add --no-cache --virtual=.build-dependencies wget ca-certificates && \
+    echo \
+        "-----BEGIN PUBLIC KEY-----\
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApZ2u1KJKUu/fW4A25y9m\
+        y70AGEa/J3Wi5ibNVGNn1gT1r0VfgeWd0pUybS4UmcHdiNzxJPgoWQhV2SSW1JYu\
+        tOqKZF5QSN6X937PTUpNBjUvLtTQ1ve1fp39uf/lEXPpFpOPL88LKnDBgbh7wkCp\
+        m2KzLVGChf83MS0ShL6G9EQIAUxLm99VpgRjwqTQ/KfzGtpke1wqws4au0Ab4qPY\
+        KXvMLSPLUp7cfulWvhmZSegr5AdhNw5KNizPqCJT8ZrGvgHypXyiFvvAH5YRtSsc\
+        Zvo9GI2e2MaZyo9/lvb+LbLEJZKEQckqRj4P26gmASrZEPStwc+yqy1ShHLA0j6m\
+        1QIDAQAB\
+        -----END PUBLIC KEY-----" | sed 's/   */\n/g' > "/etc/apk/keys/sgerrand.rsa.pub" && \
+    wget \
+        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" && \
+    apk add --no-cache \
+        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" && \
+    \
+    rm "/etc/apk/keys/sgerrand.rsa.pub" && \
+    /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 "$LANG" || true && \
+    echo "export LANG=$LANG" > /etc/profile.d/locale.sh && \
+    \
+    apk del glibc-i18n && \
+    \
+    apk del .build-dependencies && \
+    rm \
+        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME"
+
+### https://hub.docker.com/r/nimmis/alpine-golang/dockerfile/
+RUN apk update && apk upgrade && \
+    # Make info file about this build
+    mkdir -p /etc/BUILDS/ && \
+    printf "Build of nimmis/alpine-golang:1.9.2, date: %s\n"  `date -u +"%Y-%m-%dT%H:%M:%SZ"` > /etc/BUILDS/alpine-golang && \
+    # add extra package for installation
+    apk add curl && \
+    # download and upack golang
+    curl https://storage.googleapis.com/golang/go1.9.2.linux-amd64.tar.gz | tar xzf - -C / && \
+    mv /go /goroot && \
+    # remove extra packages
+    apk del curl && \
+    # remove cached info
+    rm -rf /var/cache/apk/*
+
+ENV GOROOT=/goroot \
+    GOPATH=/gopath \
+    GOBIN=/gopath/bin \
+    PATH=${PATH}:/goroot/bin:/gopath/bin
+
 RUN set -xe && \
        mkdir -p ${GETHPATH} && \
        cd ${GETHPATH} && \
-       export GOROOT="/usr/lib/go-1.9/" && \
+       export GOROOT="/goroot" && \
        export PATH=$PATH:$GOROOT/bin && \
        git init && \
        git remote add origin https://github.com/ethereum/go-ethereum && \
@@ -83,6 +142,7 @@ RUN set -xe && \
        make geth && \
        install "${GETHPATH}/build/bin/geth" /usr/local/bin && \
        geth version
+
 USER ${USER}
 
 RUN set -xe \
