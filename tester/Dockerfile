@@ -43,7 +43,6 @@ RUN set -xe \
         findutils \
         git \
         gnupg \
-        imagemagick \
         libressl \
         openssh \
  && apk add --no-cache --virtual .libsecp256k1-build \
