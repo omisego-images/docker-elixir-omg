@@ -32,6 +32,7 @@ RUN wget https://github.com/ethereum/solidity/releases/download/v0.4.25/solc-sta
 
 RUN set -xe \
  && apk add --update --no-cache --virtual .utils \
+        rocksdb \
         linux-headers \
         bash \
         build-base \
