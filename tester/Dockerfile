@@ -32,7 +32,6 @@ RUN wget https://github.com/ethereum/solidity/releases/download/v0.4.25/solc-sta
 
 RUN set -xe \
  && apk add --update --no-cache --virtual .utils \
-        rocksdb \
         linux-headers \
         bash \
         build-base \
@@ -142,6 +141,20 @@ RUN set -xe && \
        make geth && \
        install "${GETHPATH}/build/bin/geth" /usr/local/bin && \
        geth version
+
+# Install Rocksdb
+RUN cd /tmp && \
+    git clone https://github.com/facebook/rocksdb.git && \
+    cd rocksdb && \
+    git checkout v6.2.2 && \
+    make shared_lib && \
+    mkdir -p /usr/local/rocksdb/lib && \
+    mkdir /usr/local/rocksdb/include && \
+    cp librocksdb.so* /usr/local/rocksdb/lib && \
+    cp /usr/local/rocksdb/lib/librocksdb.so* /usr/lib/ && \
+    cp -r include /usr/local/rocksdb/ && \
+    cp -r include/* /usr/include/ && \
+    rm -R /tmp/rocksdb/
 
 USER ${USER}
 
