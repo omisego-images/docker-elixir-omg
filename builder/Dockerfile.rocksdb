@@ -21,7 +21,7 @@ RUN set -xe \
  && rm rocksdb-src.tar.gz \
  && ( \
         cd /usr/local/src/rocksdb \
-        && make -j$(nproc) shared_lib LITE=1 \
+        && make -j$(nproc) shared_lib \
         && mkdir -p /usr/local/rocksdb/lib \
         && mkdir -p /usr/local/rocksdb/include \
         && cp -dr librocksdb.so* /usr/local/rocksdb/lib \
