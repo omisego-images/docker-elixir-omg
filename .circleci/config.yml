@@ -1,12 +1,10 @@
 version: 2.1
 
-
 executors:
   buildpack:
     docker:
       - image: circleci/buildpack-deps:trusty
     working_directory: ~/src
-
 
 commands:
   docker_import:
@@ -114,7 +112,6 @@ commands:
               docker push "$IMAGE_NAME:dev-$IMAGE_GIT"
             fi
 
-
 jobs:
   setup:
     executor: buildpack
@@ -166,6 +163,20 @@ jobs:
           paths:
             - docker/omisegoimages_elixir-omg_builder_elixir.tar
 
+  build_builder_rocksdb:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-builder-rocksdb"
+          dockerfile: "builder/Dockerfile.rocksdb"
+          export: "~/docker/omisegoimages_elixir-omg_builder_rocksdb.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_builder_rocksdb.tar
+
   build_builder:
     executor: buildpack
     steps:
@@ -179,6 +190,20 @@ jobs:
           <<: *persist_workspace
           paths:
             - docker/omisegoimages_elixir-omg_builder.tar
+
+  build_tester_geth:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-tester-geth"
+          dockerfile: "tester/Dockerfile.geth"
+          export: "~/docker/omisegoimages_elixir-omg_tester_geth.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_tester_geth.tar
 
   build_tester:
     executor: buildpack
@@ -248,7 +273,6 @@ jobs:
           paths:
             - ~/docker
 
-
 workflows:
   version: 2
   build:
@@ -261,15 +285,25 @@ workflows:
       - build_builder_elixir:
           requires:
             - build_builder_erlang
+      - build_builder_rocksdb:
+          requires:
+            - setup
       - build_builder:
           requires:
+            - build_builder_rocksdb
             - build_builder_elixir
       - publish_builder:
           requires:
             - build_builder
+
+      - build_tester_geth:
+          requires:
+            - setup
       - build_tester:
           requires:
+            - build_builder_rocksdb
             - build_builder_elixir
+            - build_tester_geth
       - publish_tester:
           requires:
             - build_tester
