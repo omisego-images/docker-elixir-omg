@@ -1,0 +1,85 @@
+FROM alpine:3.8
+
+ARG GO_VERSION="1.9.2"
+ARG GO_DOWNLOAD_SHA256="de874549d9a8d8d8062be05808509c09a88a248e77ec14eb77453530829ac02b"
+
+ARG GETH_VERSION="1.8.21"
+ARG GETH_DOWNLOAD_SHA256="736028b4babd44d67a70a4a7883a06e97263449805c8c067b7dfd77e9fa94299"
+
+# Geth requires Golang, Golang requires Glibc
+RUN set -xe \
+ && apk add --update --no-cache --virtual .geth-build \
+        build-base \
+        ca-certificates \
+        curl \
+        make \
+        tar \
+        linux-headers \
+ && GO_DOWNLOAD_URL="https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz" \
+ && GETH_DOWNLOAD_URL="https://github.com/ethereum/go-ethereum/archive/v${GETH_VERSION}.tar.gz" \
+ && ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download" \
+ && ALPINE_GLIBC_PACKAGE_VERSION="2.29-r0" \
+ && ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-$ALPINE_GLIBC_PACKAGE_VERSION.apk" \
+ && ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-$ALPINE_GLIBC_PACKAGE_VERSION.apk" \
+ && ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-$ALPINE_GLIBC_PACKAGE_VERSION.apk" \
+ && echo \
+        "-----BEGIN PUBLIC KEY-----\
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApZ2u1KJKUu/fW4A25y9m\
+        y70AGEa/J3Wi5ibNVGNn1gT1r0VfgeWd0pUybS4UmcHdiNzxJPgoWQhV2SSW1JYu\
+        tOqKZF5QSN6X937PTUpNBjUvLtTQ1ve1fp39uf/lEXPpFpOPL88LKnDBgbh7wkCp\
+        m2KzLVGChf83MS0ShL6G9EQIAUxLm99VpgRjwqTQ/KfzGtpke1wqws4au0Ab4qPY\
+        KXvMLSPLUp7cfulWvhmZSegr5AdhNw5KNizPqCJT8ZrGvgHypXyiFvvAH5YRtSsc\
+        Zvo9GI2e2MaZyo9/lvb+LbLEJZKEQckqRj4P26gmASrZEPStwc+yqy1ShHLA0j6m\
+        1QIDAQAB\
+        -----END PUBLIC KEY-----" | sed 's/   */\n/g' > "/etc/apk/keys/sgerrand.rsa.pub" \
+ && curl -fsL -O "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+ && curl -fsL -O "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+ && curl -fSL -O "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" \
+ && apk add --no-cache --virtual .glibc \
+        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" \
+ && rm "/etc/apk/keys/sgerrand.rsa.pub" \
+ && /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 "$LANG" || true \
+ && echo "export LANG=$LANG" > /etc/profile.d/locale.sh \
+ && apk del glibc-i18n \
+ && rm "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+ && rm "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+ && rm "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" \
+ && curl -fsL -o go-bin.tar.gz "${GO_DOWNLOAD_URL}" \
+ && echo "${GO_DOWNLOAD_SHA256}  go-bin.tar.gz" |sha256sum -c - \
+ && mkdir -vp /usr/local/src/geth/goroot \
+ && tar -xzC /usr/local/src/geth/goroot --strip-components=1 -f go-bin.tar.gz \
+ && rm go-bin.tar.gz \
+ && curl -fsL -o geth-src.tar.gz "${GETH_DOWNLOAD_URL}" \
+ && echo "${GETH_DOWNLOAD_SHA256}  geth-src.tar.gz" |sha256sum -c - \
+ && mkdir -vp /usr/local/src/geth/geth \
+ && tar -xzC /usr/local/src/geth/geth --strip-components=1 -f geth-src.tar.gz \
+ && rm geth-src.tar.gz \
+ && ( \
+      mkdir -vp /usr/local/src/geth/go \
+          && export GOROOT=/usr/local/src/geth/goroot \
+          && export GOPATH=/usr/local/src/geth/go \
+          && export PATH=/usr/local/src/geth/goroot/bin:$PATH \
+          && cd /usr/local/src/geth/geth \
+          && make -j$(nproc) geth \
+          && mkdir -vp /usr/local/geth/bin \
+          && mv build/bin/geth /usr/local/geth/bin \
+    ) \
+ && scanelf --nobanner -E ET_EXEC -BF '%F' --recursive /usr/local/geth | xargs -r strip --strip-all \
+ && scanelf --nobanner -E ET_DYN -BF '%F' --recursive /usr/local/geth | xargs -r strip --strip-unneeded \
+ && GETH_RUN_DEPS="$( \
+        scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/geth \
+            | tr ',' '\n' \
+            | sort -u \
+            | awk 'system("[ -e /usr/local/geth/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+    )" \
+ && apk add --update --no-cache --virtual .geth-run $GETH_RUN_DEPS \
+ && apk del .glibc \
+ && apk del .geth-build \
+ && rm -rf /usr/local/src \
+ && rm -rf /usr/glibc-compat \
+ && rm -rf /etc/profile.d/locale.sh \
+ && /usr/local/geth/bin/geth version
+
+ENV PATH=/usr/local/geth/bin:$PATH
