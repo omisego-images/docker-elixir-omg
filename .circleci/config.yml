@@ -205,6 +205,20 @@ jobs:
           paths:
             - docker/omisegoimages_elixir-omg_tester_geth.tar
 
+  build_tester_plasma_deployer:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-tester-plasma-deployer"
+          dockerfile: "tester/Dockerfile.plasma_deployer"
+          export: "~/docker/omisegoimages_elixir-omg_tester_plasma_deployer.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_tester_plasma_deployer.tar
+
   build_tester:
     executor: buildpack
     steps:
@@ -238,6 +252,16 @@ jobs:
           path: "~/docker"
       - docker_push:
           image: "omisegoimages/elixir-omg-tester"
+
+  publish_plasma_deployer:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_import:
+          path: "~/docker"
+      - docker_push:
+          image: "omisegoimages/elixir-omg-tester-plasma-deployer"
 
   build_deploy:
     executor: buildpack
@@ -299,6 +323,9 @@ workflows:
       - build_tester_geth:
           requires:
             - setup
+      - build_tester_plasma_deployer:
+          requires:
+            - setup
       - build_tester:
           requires:
             - build_builder_rocksdb
@@ -307,6 +334,10 @@ workflows:
       - publish_tester:
           requires:
             - build_tester
+
+      - publish_plasma_deployer:
+          requires:
+            - build_tester_plasma_deployer
 
       - build_deploy:
           requires:
