@@ -75,7 +75,7 @@ services:
       - "8546"
       - "8545"
     volumes:
-      - ./data/geth/data:/data
+      - ./data:/data
     healthcheck:
       test: curl geth:8545
       interval: 5s

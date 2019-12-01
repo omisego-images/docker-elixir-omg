@@ -302,6 +302,7 @@ jobs:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
+      - attach_workspace: *attach_workspace
       - run:
           name: Get Plasma Deployer image and standup geth and deploy contracts
           command: |
@@ -314,27 +315,28 @@ jobs:
               IMAGE_GIT=$(git rev-parse --short HEAD)
               TAG="$IMAGE_NAME:dev-$IMAGE_GIT"
             fi
+            cd contracts/
             IMAGE=${TAG} docker-compose up -d
             wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-270.0.0-linux-x86_64.tar.gz -O gcloud-sdk.tar.gz
             tar zxf gcloud-sdk.tar.gz google-cloud-sdk
             mv google-cloud-sdk ~/.google-cloud-sdk
             ~/.google-cloud-sdk/install.sh --quiet
-            source $BASH_ENV
-            gcloud components install kubectl --quiet
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
             while true; do 
               if [ "$(curl localhost:8000/contracts)" ]; then 
-                docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
-                sudo rm -f data/geth.ipc
-                sudo zip -r data-${TAG}.zip data/
-                # UPLOAD THE FREAKING DATA-ZIP!
-                sudo gcloud --quiet components update
-                
-                gsutil cp data-${TAG}.zip gs://
+                break
               fi; 
             done
+            docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
+            sudo rm -f data/geth.ipc
+            sudo zip -r data-${TAG}.zip data/
+            # UPLOAD THE FREAKING DATA-ZIP!
+            sudo gcloud --quiet components update
+            export BOTO_CONFIG=/dev/null
+            gsutil cp data-${TAG}.zip gs://circleci-docker-artifacts 
+            echo http(s)://storage.googleapis.com/circleci-docker-artifacts/data-${TAG}.zip
     
 
 workflows:
