@@ -336,7 +336,7 @@ jobs:
             # UPLOAD THE FREAKING DATA-ZIP!
             export BOTO_CONFIG=/dev/null
             gsutil cp data-${TAG}.zip gs://circleci-docker-artifacts 
-            echo http(s)://storage.googleapis.com/circleci-docker-artifacts/data-${TAG}.zip
+            echo https://storage.googleapis.com/circleci-docker-artifacts/data-${TAG}.zip
     
 
 workflows:
