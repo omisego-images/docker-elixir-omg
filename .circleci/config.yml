@@ -309,14 +309,33 @@ jobs:
             IMAGE_NAME=elixir-omg-tester-plasma-deployer
             if [ "$CIRCLE_BRANCH" = "master" ]; then
               IMAGE_DATE="$(date -u +%Y%m%d)"
-              "$IMAGE_NAME:stable-$IMAGE_DATE"
+              TAG="$IMAGE_NAME:stable-$IMAGE_DATE"
             else
               IMAGE_GIT=$(git rev-parse --short HEAD)
-              "$IMAGE_NAME:dev-$IMAGE_GIT"
+              TAG="$IMAGE_NAME:dev-$IMAGE_GIT"
             fi
-            docker-compose up -d
-            # send a patient kill switch to geth
-            docker exec -it $(docker ps -aqf "name=geth") 'pkill -INT geth'
+            IMAGE=${TAG} docker-compose up -d
+            wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-270.0.0-linux-x86_64.tar.gz -O gcloud-sdk.tar.gz
+            tar zxf gcloud-sdk.tar.gz google-cloud-sdk
+            mv google-cloud-sdk ~/.google-cloud-sdk
+            ~/.google-cloud-sdk/install.sh --quiet
+            source $BASH_ENV
+            gcloud components install kubectl --quiet
+            echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+            gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+            while true; do 
+              if [ "$(curl localhost:8000/contracts)" ]; then 
+                docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
+                sudo rm -f data/geth.ipc
+                sudo zip -r data-${TAG}.zip data/
+                # UPLOAD THE FREAKING DATA-ZIP!
+                sudo gcloud --quiet components update
+                
+                gsutil cp data-${TAG}.zip gs://
+              fi; 
+            done
+    
 
 workflows:
   version: 2
