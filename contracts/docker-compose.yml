@@ -51,7 +51,7 @@ services:
           #   2. Configuring the authority's keystore
           #   3. Configuring the keystores' password
           #   4. Unlocking the accounts by their indexes
-          geth --datadir data/ init data/genesis.json
+          geth --datadir data/ init data/geth/genesis.json
           echo "" > /tmp/geth-blank-password
           # Starts geth
           
@@ -61,7 +61,7 @@ services:
             --syncmode 'full' \
             --networkid 1337 \
             --gasprice '1' \
-            --keystore=./data/keystore/ \
+            --keystore=./data/geth/keystore/ \
             --password /tmp/geth-blank-password \
             --unlock "0,1" \
             --rpc --rpcapi personal,web3,eth,net --rpcaddr 0.0.0.0 --rpcvhosts=* --rpcport=8545 \
