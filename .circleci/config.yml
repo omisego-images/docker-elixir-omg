@@ -297,6 +297,27 @@ jobs:
           paths:
             - ~/docker
 
+  snapshot_plasma_contracts:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run:
+          name: Get Plasma Deployer image and standup geth and deploy contracts
+          command: |
+            set -xe
+            IMAGE_NAME=elixir-omg-tester-plasma-deployer
+            if [ "$CIRCLE_BRANCH" = "master" ]; then
+              IMAGE_DATE="$(date -u +%Y%m%d)"
+              "$IMAGE_NAME:stable-$IMAGE_DATE"
+            else
+              IMAGE_GIT=$(git rev-parse --short HEAD)
+              "$IMAGE_NAME:dev-$IMAGE_GIT"
+            fi
+            docker-compose up -d
+            # send a patient kill switch to geth
+            docker exec -it $(docker ps -aqf "name=geth") 'pkill -INT geth'
+
 workflows:
   version: 2
   build:
@@ -338,6 +359,10 @@ workflows:
       - publish_plasma_deployer:
           requires:
             - build_tester_plasma_deployer
+      
+      - snapshot_plasma_contracts:
+          requires:
+            - publish_plasma_deployer
 
       - build_deploy:
           requires:
