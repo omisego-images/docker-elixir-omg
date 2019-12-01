@@ -317,13 +317,14 @@ jobs:
             fi
             cd contracts/
             IMAGE=${TAG} docker-compose up -d
-            wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-270.0.0-linux-x86_64.tar.gz -O gcloud-sdk.tar.gz
+            wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-272.0.0-linux-x86_64.tar.gz -O gcloud-sdk.tar.gz
             tar zxf gcloud-sdk.tar.gz google-cloud-sdk
             mv google-cloud-sdk ~/.google-cloud-sdk
             ~/.google-cloud-sdk/install.sh --quiet
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+            sleep 2m
             while true; do 
               if [ "$(curl localhost:8000/contracts)" ]; then 
                 break
@@ -333,7 +334,6 @@ jobs:
             sudo rm -f data/geth.ipc
             sudo zip -r data-${TAG}.zip data/
             # UPLOAD THE FREAKING DATA-ZIP!
-            sudo gcloud --quiet components update
             export BOTO_CONFIG=/dev/null
             gsutil cp data-${TAG}.zip gs://circleci-docker-artifacts 
             echo http(s)://storage.googleapis.com/circleci-docker-artifacts/data-${TAG}.zip
