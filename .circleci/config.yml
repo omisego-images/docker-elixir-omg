@@ -324,7 +324,7 @@ jobs:
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
-            sleep 2m
+            sleep 3m
             while true; do 
               if [ "$(curl localhost:8000/contracts)" ]; then 
                 break
@@ -332,10 +332,12 @@ jobs:
             done
             docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
             sudo rm -f data/geth.ipc
-            sudo tar czf data-${TAG}.tar.gz data/
+            ZIP_NAME=$(echo data-${TAG}.tar.gz | sed 's/:/-/')
+            echo ${ZIP_NAME}
+            sudo tar czf ${ZIP_NAME} data/
             export BOTO_CONFIG=/dev/null
-            gsutil cp data-${TAG}.tar.gz gs://circleci-docker-artifacts 
-            echo https://storage.googleapis.com/circleci-docker-artifacts/data-${TAG}.tar.gz
+            gsutil cp ${ZIP_NAME} gs://circleci-docker-artifacts 
+            echo "https://storage.googleapis.com/circleci-docker-artifacts/${ZIP_NAME}"
     
 
 workflows:
