@@ -332,11 +332,11 @@ jobs:
             done
             docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
             sudo rm -f data/geth.ipc
-            sudo zip -r data-${TAG}.zip data/
+            sudo tar -zcvf data-${TAG}.tar.gz data/
             # UPLOAD THE FREAKING DATA-ZIP!
             export BOTO_CONFIG=/dev/null
-            gsutil cp data-${TAG}.zip gs://circleci-docker-artifacts 
-            echo https://storage.googleapis.com/circleci-docker-artifacts/data-${TAG}.zip
+            gsutil cp data-${TAG}.tar.gz gs://circleci-docker-artifacts 
+            echo https://storage.googleapis.com/circleci-docker-artifacts/data-${TAG}.tar.gz
     
 
 workflows:
