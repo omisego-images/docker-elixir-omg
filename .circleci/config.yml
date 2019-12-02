@@ -332,12 +332,12 @@ jobs:
             done
             docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
             sudo rm -f data/geth.ipc
-            ZIP_NAME=$(echo data-${TAG}.tar.gz | sed 's/:/-/')
-            echo ${ZIP_NAME}
-            sudo tar czf ${ZIP_NAME} data/
+            TAR_NAME=$(echo data-${TAG}.tar.gz | sed 's/:/-/')
+            echo ${TAR_NAME}
+            sudo tar czf ${TAR_NAME} data/
             export BOTO_CONFIG=/dev/null
-            gsutil cp ${ZIP_NAME} gs://circleci-docker-artifacts 
-            echo "https://storage.googleapis.com/circleci-docker-artifacts/${ZIP_NAME}"
+            gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts 
+            echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
     
 
 workflows:
