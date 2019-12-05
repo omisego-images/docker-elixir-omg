@@ -11,7 +11,9 @@ services:
           # Fix block gas limit issue by retrying truffle migration up to 5 times
           for i in 1 2 3 4 5; do \
             echo 'Running truffle migration attempt #$${i}'
-            npx truffle migrate --network remote command && break; \
+            npx truffle migrate --network remote command && \
+            cd contracts/mocks/transactions/eip712Libs/ && truffle migrate && \
+            break; \
           done
           cd build
           echo '{"contracts":' > db.json && cat outputs.json >> db.json && echo '}' >> db.json
