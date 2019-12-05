@@ -1,7 +1,7 @@
 version: "2.3"
 services:
   plasma-contracts:
-    image: omisegoimages/${IMAGE}
+    image: omisegoimages/elixir-omg-tester-plasma-deployer:dev-1173453
     command:
       - /bin/sh
       - -c
@@ -12,7 +12,8 @@ services:
           for i in 1 2 3 4 5; do \
             echo 'Running truffle migration attempt #$${i}'
             npx truffle migrate --network remote command && \
-            cd contracts/mocks/transactions/eip712Libs/ && truffle migrate && \
+            cd contracts/mocks/migrations/ && \
+            npx truffle migrate --network remote command && \
             break; \
           done
           cd build
