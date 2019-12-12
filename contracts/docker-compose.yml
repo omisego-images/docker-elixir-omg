@@ -1,21 +1,17 @@
 version: "2.3"
 services:
   plasma-contracts:
-    image: omisegoimages/elixir-omg-tester-plasma-deployer:dev-9b7fff2
+    image: omisegoimages/${IMAGE}
     command:
       - /bin/sh
       - -c
       - |
           apk add --update curl
-          cd /home/node/plasma-contracts/plasma_framework/contracts/mocks/migrations/
+          cd /home/node/plasma-contracts/plasma_framework
           # Fix block gas limit issue by retrying truffle migration up to 5 times
           for i in 1 2 3 4 5; do \
-            echo 'Running truffle migration mock attempt #$${i}'
-            npx truffle migrate -f 1 --to 2 --network remote && \  
-            cd /home/node/plasma-contracts/plasma_framework/ && \
             echo 'Running truffle migration attempt #$${i}'
-            npx truffle migrate --network remote command && \
-            break; \
+            npx truffle migrate --network remote command && break; \
           done
           cd build
           echo '{"contracts":' > db.json && cat outputs.json >> db.json && echo '}' >> db.json
