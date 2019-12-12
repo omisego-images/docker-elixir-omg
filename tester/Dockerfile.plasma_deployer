@@ -12,6 +12,6 @@ RUN apk add --update \
 		git
 
 RUN git clone https://github.com/omisego/plasma-contracts.git
-RUN cd /home/node/plasma-contracts && git reset --hard e89e3d69749d8808a1fb97b6823138952c55722b
+RUN cd /home/node/plasma-contracts && git reset --hard e3f2debe3ce6f77bc61d90aec6247d45ef7295d5
 RUN cd /home/node/plasma-contracts && npm install
 RUN cd /home/node/plasma-contracts/plasma_framework && npm install
