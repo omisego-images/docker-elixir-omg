@@ -1,3 +1,10 @@
+[![CircleCI](https://circleci.com/gh/omisego-images/docker-elixir-omg.svg?style=svg&circle-token=ce38b7a7577499882c41ec7b763f1aef88aec87f)](https://circleci.com/gh/omisego-images/docker-elixir-omg)
+
+THE LATEST PLASMA CONTRACTS THAT ELIXIR-OMG SUPPORTS IS: https://github.com/omisego-images/docker-elixir-omg/blob/master/tester/CONTRACT_SHA
+
+IF YOU NEED TO BUMP CONTRACTS, PLEASE OPEN A PR AND UPDATE THIS FILE: https://github.com/omisego-images/docker-elixir-omg/blob/master/tester/CONTRACT_SHA 
+AND WAIT FOR BUILD TO PASS AFTER WHICH COMMENTS WITH FURTHER INSTRUCTIONS WILL APPEAR IN YOUR PR.
+
 # OmiseGO Elixir OMG Images
 
 This repository provides images for building [OmiseGO elixir-omg](https://github.com/omisego/elixir-omg) Docker image. **For the elixir-omg image itself, please see the [Dockerfile](https://github.com/omisego/elixir-omg/blob/master/Dockerfile.watcher https://github.com/omisego/elixir-omg/blob/master/Dockerfile.childchain) in elixir-omg repo itself.** This repository is meant for [CI/CD](https://jenkins.omisego.io/) use for the most part.

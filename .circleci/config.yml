@@ -14,6 +14,7 @@ commands:
         type: integer
         description: "The value used for plasma contracts deployment"
     steps:
+      - run: cat tester/CONTRACT_SHA
       - run:
           name: Get Plasma Deployer image and standup geth and deploy contracts
           command: |
@@ -37,7 +38,7 @@ commands:
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
             ### done installing gcloud requirements
-            sleep 3m
+            sleep 4m
             # wait until we're UP
             while true; do 
               if [ "$(curl localhost:8000/contracts)" ]; then 
@@ -54,6 +55,8 @@ commands:
             export BOTO_CONFIG=/dev/null
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts 
             echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
+            PLASMA_CONTRACTS=$(curl localhost:8000/contracts)
+            curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": \" Contracts snapshotted with MIN_EXIT_PERIOD: << parameters.min_exit_period >>. Snapshot located at: https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}. Contract addresses: \"${PLASMA_CONTRACTS}\"  \"}" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             docker-compose down && docker system prune -a -f
 
 
