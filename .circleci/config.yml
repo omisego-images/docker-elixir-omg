@@ -14,7 +14,6 @@ commands:
         type: integer
         description: "The value used for plasma contracts deployment"
     steps:
-      - run: cat tester/CONTRACT_SHA
       - run:
           name: Get Plasma Deployer image and standup geth and deploy contracts
           command: |
@@ -28,6 +27,7 @@ commands:
               TAG="$IMAGE_NAME:dev-$IMAGE_GIT"
             fi
             cd contracts/
+            CONTRACT_SHA=$(cat ../tester/CONTRACT_SHA)
             MIN_EXIT_PERIOD=<< parameters.min_exit_period >> IMAGE=${TAG} docker-compose up -d
             ### in the mean time, install gcloud requirements
             wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-272.0.0-linux-x86_64.tar.gz -O gcloud-sdk.tar.gz
@@ -49,14 +49,14 @@ commands:
             docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
             # ipc is not for cp
             sudo rm -f data/geth.ipc
-            TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>.tar.gz | sed 's/:/-/')
+            TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}.tar.gz | sed 's/:/-/')
             echo ${TAR_NAME}
             sudo tar czf ${TAR_NAME} data/
             export BOTO_CONFIG=/dev/null
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts 
             echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
             PLASMA_CONTRACTS=$(curl localhost:8000/contracts)
-            DATA=$(echo "Contracts snapshotted with MIN_EXIT_PERIOD: << parameters.min_exit_period >>. Snapshot located at: https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}. Contract addresses: ${PLASMA_CONTRACTS} " | jq -Rs '.')
+            DATA=$(echo "Contracts snapshotted with MIN_EXIT_PERIOD for SHA ( ${CONTRACT_SHA} ): << parameters.min_exit_period >>. Snapshot located at: https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}. Contract addresses: ${PLASMA_CONTRACTS} " | jq -Rs '.')
             if [ "$CIRCLE_BRANCH" = "master" ]; then
               # publish a release
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"tag_name\": \"v1.0.0\",\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/releases"
