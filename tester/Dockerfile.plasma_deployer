@@ -1,6 +1,6 @@
 FROM node:8.16-alpine
 
-MAINTAINER OmiseGO Engineering <eng@omise.co>
+MAINTAINER OmiseGO Engineering <info@omisego.co>
 
 WORKDIR /home/node
 
@@ -12,6 +12,8 @@ RUN apk add --update \
 		git
 
 RUN git clone https://github.com/omisego/plasma-contracts.git
-RUN cd /home/node/plasma-contracts && git reset --hard c05b445bf704f00b2bd2f2bc563df0880cd54091
+COPY CONTRACT_SHA /tmp/CONTRACT_SHA
+RUN export CONTRACT_SHA=$(cat /tmp/CONTRACT_SHA)
+RUN cd /home/node/plasma-contracts && git reset --hard ${CONTRACT_SHA}
 RUN cd /home/node/plasma-contracts && npm install
 RUN cd /home/node/plasma-contracts/plasma_framework && npm install

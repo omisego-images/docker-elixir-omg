@@ -7,6 +7,65 @@ executors:
     working_directory: ~/src
 
 commands:
+  snapshot:
+    description: Deploy contracts to Geth via docker-compose with parametrized MIN_EXIT_PERIOD and expose addresses and snapshot URL
+    parameters:
+      min_exit_period:
+        type: integer
+        description: "The value used for plasma contracts deployment"
+    steps:
+      - run:
+          name: Get Plasma Deployer image and standup geth and deploy contracts
+          command: |
+            set -xe
+            IMAGE_NAME=elixir-omg-tester-plasma-deployer
+            if [ "$CIRCLE_BRANCH" = "master" ]; then
+              IMAGE_DATE="$(date -u +%Y%m%d)"
+              TAG="$IMAGE_NAME:stable-$IMAGE_DATE"
+            else
+              IMAGE_GIT=$(git rev-parse --short HEAD)
+              TAG="$IMAGE_NAME:dev-$IMAGE_GIT"
+            fi
+            cd contracts/
+            CONTRACT_SHA=$(cat ../tester/CONTRACT_SHA)
+            MIN_EXIT_PERIOD=<< parameters.min_exit_period >> IMAGE=${TAG} docker-compose up -d
+            ### in the mean time, install gcloud requirements
+            wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-272.0.0-linux-x86_64.tar.gz -O gcloud-sdk.tar.gz
+            tar zxf gcloud-sdk.tar.gz google-cloud-sdk
+            mv google-cloud-sdk ~/.google-cloud-sdk
+            ~/.google-cloud-sdk/install.sh --quiet
+            echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+            gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+            ### done installing gcloud requirements
+            sleep 4m
+            # wait until we're UP
+            while true; do 
+              if [ "$(curl localhost:8000/contracts)" ]; then 
+                break
+              fi; 
+            done
+            # stop geth in docker so that we can snapshot
+            docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
+            # ipc is not for cp
+            sudo rm -f data/geth.ipc
+            TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}.tar.gz | sed 's/:/-/')
+            echo ${TAR_NAME}
+            sudo tar czf ${TAR_NAME} data/
+            export BOTO_CONFIG=/dev/null
+            gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts 
+            echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
+            PLASMA_CONTRACTS=$(curl localhost:8000/contracts)
+            DATA=$(echo "Contracts snapshotted with MIN_EXIT_PERIOD for SHA ( ${CONTRACT_SHA} ): << parameters.min_exit_period >>. Snapshot located at: https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}. Contract addresses: ${PLASMA_CONTRACTS} " | jq -Rs '.')
+            if [ "$CIRCLE_BRANCH" = "master" ]; then
+              # publish a release
+              curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"tag_name\": \"v1.0.0\",\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/releases"
+            else
+              curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
+            fi
+            ls data/geth
+            docker-compose down && sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
+
   docker_import:
     description: "Load Docker acrhive from the given directory"
     parameters:
@@ -303,41 +362,10 @@ jobs:
     steps:
       - checkout
       - attach_workspace: *attach_workspace
-      - run:
-          name: Get Plasma Deployer image and standup geth and deploy contracts
-          command: |
-            set -xe
-            IMAGE_NAME=elixir-omg-tester-plasma-deployer
-            if [ "$CIRCLE_BRANCH" = "master" ]; then
-              IMAGE_DATE="$(date -u +%Y%m%d)"
-              TAG="$IMAGE_NAME:stable-$IMAGE_DATE"
-            else
-              IMAGE_GIT=$(git rev-parse --short HEAD)
-              TAG="$IMAGE_NAME:dev-$IMAGE_GIT"
-            fi
-            cd contracts/
-            IMAGE=${TAG} docker-compose up -d
-            wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-272.0.0-linux-x86_64.tar.gz -O gcloud-sdk.tar.gz
-            tar zxf gcloud-sdk.tar.gz google-cloud-sdk
-            mv google-cloud-sdk ~/.google-cloud-sdk
-            ~/.google-cloud-sdk/install.sh --quiet
-            echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
-            gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
-            sleep 3m
-            while true; do 
-              if [ "$(curl localhost:8000/contracts)" ]; then 
-                break
-              fi; 
-            done
-            docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
-            sudo rm -f data/geth.ipc
-            TAR_NAME=$(echo data-${TAG}.tar.gz | sed 's/:/-/')
-            echo ${TAR_NAME}
-            sudo tar czf ${TAR_NAME} data/
-            export BOTO_CONFIG=/dev/null
-            gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts 
-            echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
+      - snapshot:
+          min_exit_period: 20
+      - snapshot:
+          min_exit_period: 120
     
 
 workflows:
