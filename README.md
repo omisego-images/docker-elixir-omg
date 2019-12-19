@@ -2,7 +2,7 @@
 
 THE LATEST PLASMA CONTRACTS THAT ELIXIR-OMG SUPPORTS IS: https://github.com/omisego-images/docker-elixir-omg/blob/master/tester/CONTRACT_SHA
 
-IF YOU NEED TO BUMP CONTRACTS, PLEASE OPEN A PR AND UPDATE THIS FILE: https://github.com/omisego-images/docker-elixir-omg/blob/master/tester/CONTRACT_SHA 
+IF YOU NEED TO BUMP CONTRACTS (OR DOWNGRADE), PLEASE OPEN A PR AND UPDATE THIS FILE: https://github.com/omisego-images/docker-elixir-omg/blob/master/tester/CONTRACT_SHA 
 AND WAIT FOR BUILD TO PASS AFTER WHICH COMMENTS WITH FURTHER INSTRUCTIONS WILL APPEAR IN YOUR PR.
 
 # OmiseGO Elixir OMG Images
