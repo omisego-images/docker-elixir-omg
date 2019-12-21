@@ -371,8 +371,13 @@ jobs:
           name: Gather all the snapshots and publish a release
           command: |
             if [ "$CIRCLE_BRANCH" = "master" ]; then
-              DATA=$(cat /tmp/release | jq -Rs '.')
-              curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"tag_name\": \"v1.0.0\",\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/releases"
+              CONTRACT_SHA=$(cat tester/CONTRACT_SHA)
+              IMAGE_DATE="$(date -u +%Y%m%d)"
+              TAG="plasma-contracts-snapshot-$IMAGE_DATE-${CONTRACT_SHA}"
+              echo ${TAG}
+              DATA=$(cat /tmp/release | jq -Rs '.')              
+              echo ${DATA}
+              curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"tag_name\": \"${TAG}\",\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/releases"
             fi
             
           
