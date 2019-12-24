@@ -367,6 +367,8 @@ jobs:
           min_exit_period: 20
       - snapshot:
           min_exit_period: 120
+      - snapshot:
+          min_exit_period: 240
       - run: 
           name: Gather all the snapshots and publish a release
           command: |
