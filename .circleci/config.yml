@@ -38,6 +38,8 @@ commands:
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
             ### done installing gcloud requirements
+            ### cleanup
+            rm -rf ~/.google-cloud-sdk
             sleep 4m
             # wait until we're UP
             while true; do 
