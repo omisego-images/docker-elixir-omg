@@ -15,7 +15,6 @@ services:
           done
           cd build
           echo '{"contracts":' > db.json && cat outputs.json >> db.json && echo '}' >> db.json
-          echo '{"authority_address":'"0xC0f780DfC35075979B0DEF588d999225B7ecC56f"'}' > authority_address.json
           npx json-server -w db.json -p 8000 -H 0.0.0.0
     ports:
       - "8000:8000"
@@ -24,7 +23,6 @@ services:
     volumes:
       - ${PWD}/plasma-contracts/contracts/:/home/node/plasma-contracts/plasma_framework/build/contracts/
       - ${PWD}/plasma-contracts/build/db.json:/home/node/plasma-contracts/plasma_framework/build/db.json
-      - ${PWD}/plasma-contracts/build/authority_address.json:/home/node/plasma-contracts/plasma_framework/build/authority_address.json
     environment:
       # DEPLOYER_PRIVATEKEY is the geth dev account initially funded address
       - DEPLOYER_PRIVATEKEY=d885a307e35738f773d8c9c63c7a3f3977819274638d04aaf934a1e1158513ce # 0x6De4b3B9C28E9C3e84c2b2d3a875C947a84de68D

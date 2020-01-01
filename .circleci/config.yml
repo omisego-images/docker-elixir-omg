@@ -53,7 +53,12 @@ commands:
             sudo rm -f data/geth.ipc
             TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}.tar.gz | sed 's/:/-/')
             echo ${TAR_NAME}
-            sudo tar czf ${TAR_NAME} data/ plasma-contracts/contracts/ plasma-contracts/build/db.json plasma-contracts/build/authority_address.json ../tester/CONTRACT_SHA
+            KEYS=($(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq 'keys[]' | tr -d '"')) 
+            VALS=($(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq '.[]' | tr -d '"'))
+            for i in "${!KEYS[@]}"; do
+              echo "${VALS[i]}" > plasma-contracts/build/"${KEYS[i]}".json
+            done
+            sudo tar czf ${TAR_NAME} data/ plasma-contracts/contracts/ plasma-contracts/build/*.json ../tester/CONTRACT_SHA
             export BOTO_CONFIG=/dev/null
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts 
             echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
