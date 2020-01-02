@@ -57,7 +57,7 @@ commands:
             for i in "${!KEYS[@]}"; do
               echo $(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq -r '.'${KEYS[i]} | tr -d '"') > plasma-contracts/build/"${KEYS[i]}"
             done
-            sudo tar czf ${TAR_NAME} data/ plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA
+            sudo tar czf ${TAR_NAME} data/geth plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA
             export BOTO_CONFIG=/dev/null
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts 
             echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
