@@ -53,6 +53,9 @@ commands:
             sudo rm -f data/geth.ipc
             TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}.tar.gz | sed 's/:/-/')
             echo ${TAR_NAME}
+            # for every key in object db.json create a file
+            # where the key is the name of the file and the content of the file is it's value
+            # for example plasma-contracts/build/authority_address file has content 0xc0f780dfc35075979b0def588d999225b7ecc56f
             KEYS=($(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq 'keys[]' | tr -d '"'))
             for i in "${!KEYS[@]}"; do
               echo $(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq -r '.'${KEYS[i]} | tr -d '"') > plasma-contracts/build/"${KEYS[i]}"
