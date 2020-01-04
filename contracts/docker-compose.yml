@@ -20,11 +20,14 @@ services:
       - "8000:8000"
     expose:
       - "8000"
+    volumes:
+      - ${PWD}/plasma-contracts/contracts/:/home/node/plasma-contracts/plasma_framework/build/contracts/
+      - ${PWD}/plasma-contracts/build/db.json:/home/node/plasma-contracts/plasma_framework/build/db.json
     environment:
       # DEPLOYER_PRIVATEKEY is the geth dev account initially funded address
-      - DEPLOYER_PRIVATEKEY=d885a307e35738f773d8c9c63c7a3f3977819274638d04aaf934a1e1158513ce # 0x6de4b3b9c28e9c3e84c2b2d3a875c947a84de68d
-      - MAINTAINER_PRIVATEKEY=6f30f140fd4724519e5017c0895f158d68bbbe4a81c0c10dbb25a0006e348807 # 0x59695413678e19d7d490893810a8ac9fe6cb0f5c
-      - AUTHORITY_PRIVATEKEY=7f30f140fd4724519e5017c0895f158d68bbbe4a81c0c10dbb25a0006e348807 # 0xc0f780dfc35075979b0def588d999225b7ecc56f
+      - DEPLOYER_PRIVATEKEY=d885a307e35738f773d8c9c63c7a3f3977819274638d04aaf934a1e1158513ce # 0x6De4b3B9C28E9C3e84c2b2d3a875C947a84de68D
+      - MAINTAINER_PRIVATEKEY=6f30f140fd4724519e5017c0895f158d68bbbe4a81c0c10dbb25a0006e348807 # 0x59695413678e19D7d490893810a8Ac9fE6Cb0f5c
+      - AUTHORITY_PRIVATEKEY=7f30f140fd4724519e5017c0895f158d68bbbe4a81c0c10dbb25a0006e348807 # 0xC0f780DfC35075979B0DEF588d999225B7ecC56f
       - REMOTE_URL=http://geth:8545
       - DEPLOY_TEST_CONTRACTS=true
       - MIN_EXIT_PERIOD=${MIN_EXIT_PERIOD}

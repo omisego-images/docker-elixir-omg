@@ -53,16 +53,23 @@ commands:
             sudo rm -f data/geth.ipc
             TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}.tar.gz | sed 's/:/-/')
             echo ${TAR_NAME}
-            sudo tar czf ${TAR_NAME} data/
+            # for every key in object db.json create a file
+            # where the key is the name of the file and the content of the file is it's value
+            # for example plasma-contracts/build/authority_address file has content 0xc0f780dfc35075979b0def588d999225b7ecc56f
+            KEYS=($(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq 'keys[]' | tr -d '"'))
+            for i in "${!KEYS[@]}"; do
+              echo $(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq -r '.'${KEYS[i]} | tr -d '"') > plasma-contracts/build/"${KEYS[i]}"
+            done
+            sudo tar czf ${TAR_NAME} data/geth plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA
             export BOTO_CONFIG=/dev/null
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts 
             echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
             PLASMA_CONTRACTS=$(curl localhost:8000/contracts)
-            DATA=$(echo "Contracts snapshotted with MIN_EXIT_PERIOD for SHA ( ${CONTRACT_SHA} ): << parameters.min_exit_period >>.\n Snapshot located at: https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}. \n Contract addresses: \n ${PLASMA_CONTRACTS} " | jq -Rs '.')
+            DATA=$(echo "Contracts snapshotted with MIN_EXIT_PERIOD for SHA ( ${CONTRACT_SHA} ): << parameters.min_exit_period >>.\r\n Snapshot located at: \r\n   https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}  \r\n  Contract addresses: \r\n ${PLASMA_CONTRACTS} " | jq -Rs '.')
             if [ "$CIRCLE_BRANCH" = "master" ]; then
               # append the data you would usually post as a comment to a file and create a release out of this file
               echo ${DATA} >> /tmp/release
-              echo $'\n\n\n' >> /tmp/release
+              echo $'\r\n\r\n\r\n' >> /tmp/release
             else
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             fi

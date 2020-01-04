@@ -68,14 +68,6 @@ RUN set -xe \
  && mkdir -p "${HOME}" \
  && chown -R "${UID}:${GID}" "${HOME}"
 
-RUN set -xe \
-  && cd /tmp \
-  && curl -fsL -o solc https://github.com/ethereum/solidity/releases/download/v0.5.11/solc-static-linux \
-  && chmod +x solc \
-  && install -m0755 solc /usr/local/bin/solc \
-  && scanelf --nobanner -E ET_EXEC -BF '%F' /usr/local/bin/solc | xargs -r strip --strip-all \
-  && scanelf --nobanner -E ET_DYN -BF '%F' /usr/local/bin/solc | xargs -r strip --strip-unneeded
-
 USER ${USER}
 
 RUN set -xe \
