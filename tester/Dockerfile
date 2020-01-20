@@ -30,7 +30,7 @@ ENV PATH=/usr/local/geth/bin:$PATH
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
-
+ENV DOCKER=true
 RUN set -xe \
  && apk add --update --no-cache --virtual .utils \
         linux-headers \
