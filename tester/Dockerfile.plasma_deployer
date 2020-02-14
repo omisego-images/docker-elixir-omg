@@ -1,4 +1,4 @@
-FROM node:8.16-alpine
+FROM node:10-alpine
 
 MAINTAINER OmiseGO Engineering <info@omisego.co>
 
@@ -9,7 +9,7 @@ RUN apk add --update \
     python-dev \
     py-pip \
     build-base \
-		git
+    git
 
 RUN git clone https://github.com/omisego/plasma-contracts.git
 COPY CONTRACT_SHA /tmp/CONTRACT_SHA
