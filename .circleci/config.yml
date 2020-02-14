@@ -42,10 +42,11 @@ commands:
             rm -rf ~/.google-cloud-sdk
             sleep 4m
             # wait until we're UP
-            while true; do 
+            for i in {1..60}; do
               if [ "$(curl localhost:8000/contracts)" ]; then 
                 break
               fi; 
+              sleep 1
             done
             # stop geth in docker so that we can snapshot
             docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
