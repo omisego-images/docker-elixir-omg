@@ -43,12 +43,12 @@ services:
       start_period: 5m
 
   geth:
-    image: ethereum/client-go:v1.8.27
+    image: ethereum/client-go:v1.9.10
     entrypoint:
       - /bin/sh
       - -c
       - |
-          
+          # don't run --allow-insecure-unlock in production!
           apk add --update curl
           # Configures geth with the deployer and authority accounts. This includes:
           #   1. Configuring the deployer's keystore
@@ -70,7 +70,8 @@ services:
             --unlock "0,1" \
             --rpc --rpcapi personal,web3,eth,net --rpcaddr 0.0.0.0 --rpcvhosts=* --rpcport=8545 \
             --ws --wsaddr 0.0.0.0 --wsorigins='*' \
-            --mine 
+            --mine \
+            --allow-insecure-unlock
             
     ports:
       - "8545:8545"
