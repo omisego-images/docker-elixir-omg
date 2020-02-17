@@ -70,7 +70,8 @@ services:
             --unlock "0,1" \
             --rpc --rpcapi personal,web3,eth,net --rpcaddr 0.0.0.0 --rpcvhosts=* --rpcport=8545 \
             --ws --wsaddr 0.0.0.0 --wsorigins='*' \
-            --mine 
+            --mine \
+            --allow-insecure-unlock
             
     ports:
       - "8545:8545"
