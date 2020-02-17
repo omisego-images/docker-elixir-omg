@@ -48,7 +48,7 @@ services:
       - /bin/sh
       - -c
       - |
-          
+          # don't run --allow-insecure-unlock in production!
           apk add --update curl
           # Configures geth with the deployer and authority accounts. This includes:
           #   1. Configuring the deployer's keystore
