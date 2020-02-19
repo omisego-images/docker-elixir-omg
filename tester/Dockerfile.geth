@@ -4,9 +4,9 @@ ARG GO_VERSION="1.13.8"
 #https://golang.org/dl/
 ARG GO_DOWNLOAD_SHA256="0567734d558aef19112f2b2873caa0c600f1b4a5827930eb5a7f35235219e9d8"
 
-ARG GETH_VERSION="1.9.10"
+ARG GETH_VERSION="1.9.11"
 #this SHA was computed locally!
-ARG GETH_DOWNLOAD_SHA256="d16afd0686a083e2bb3c18862c7d736505355e42edff4c401112dc643c4fad15"
+ARG GETH_DOWNLOAD_SHA256="226cf65cda4eab3e66e8042c3d8bcee8ed07c619ae0ec2421ed4b0abe97bb055"
 
 # Geth requires Golang, Golang requires Glibc
 RUN set -xe \
