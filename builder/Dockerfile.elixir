@@ -1,7 +1,7 @@
 FROM omisegoimages/elixir-omg-builder-erlang
 
-ARG ELIXIR_VERSION="1.8.2"
-ARG ELIXIR_DOWNLOAD_SHA256="cf9bf0b2d92bc4671431e3fe1d1b0a0e5125f1a942cc4fdf7914b74f04efb835"
+ARG ELIXIR_VERSION="1.10.2"
+ARG ELIXIR_DOWNLOAD_SHA256="5adffcf4389aa82fcfbc84324ebbfa095fc657a0e15b2b055fc05184f96b2d50"
 
 RUN set -xe \
  && apk add --update --no-cache --virtual .elixir-build \
