@@ -2,6 +2,8 @@ FROM node:10-alpine
 
 MAINTAINER OmiseGO Engineering <info@omisego.co>
 
+ARG GITHUB_TOKEN
+
 WORKDIR /home/node
 
 RUN apk add --update \
@@ -11,8 +13,12 @@ RUN apk add --update \
     build-base \
     git
 
-RUN git clone https://github.com/omisego/plasma-contracts.git
 COPY CONTRACT_SHA /tmp/CONTRACT_SHA
+COPY CONTRACT_REPO_NAME /tmp/CONTRACT_REPO_NAME
+
+RUN mkdir plasma-contracts/
+RUN cd /home/node/plasma-contracts && git init
+RUN cd /home/node/plasma-contracts && git pull https://${GITHUB_TOKEN}@github.com/omisego/$(cat /tmp/CONTRACT_REPO_NAME).git
 RUN cd /home/node/plasma-contracts && git reset --hard $(cat /tmp/CONTRACT_SHA)
 RUN cd /home/node/plasma-contracts && npm install
 RUN cd /home/node/plasma-contracts/plasma_framework && npm install
