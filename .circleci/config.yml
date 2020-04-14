@@ -269,6 +269,20 @@ jobs:
           paths:
             - docker/omisegoimages_elixir-omg_builder.tar
 
+  build_childchain_builder:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisego/childchain-builder"
+          dockerfile: "builder_childchain/Dockerfile"
+          export: "~/docker/childchain-builder.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/childchain-builder.tar
+
   build_tester_geth:
     executor: buildpack
     steps:
@@ -321,6 +335,16 @@ jobs:
           path: "~/docker"
       - docker_push:
           image: "omisegoimages/elixir-omg-builder"
+
+  publish_childchain_builder:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_import:
+          path: "~/docker"
+      - docker_push:
+          image: "omisego/childchain-builder"
 
   publish_tester:
     executor: buildpack
@@ -423,9 +447,15 @@ workflows:
           requires:
             - build_builder_rocksdb
             - build_builder_elixir
+      - build_childchain_builder:
+          requires:
+            - build_builder_elixir
       - publish_builder:
           requires:
             - build_builder
+      - publish_childchain_builder:
+          requires:
+            - build_childchain_builder
 
       - build_tester_geth:
           requires:
@@ -459,5 +489,6 @@ workflows:
 
       - save_cache:
           requires:
+            - publish_childchain_builder
             - publish_builder
             - publish_deploy
