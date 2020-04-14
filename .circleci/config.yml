@@ -335,7 +335,7 @@ jobs:
       - docker_import:
           path: "~/docker"
       - docker_push:
-          image: "omisegoimages/childchain-builder"
+          image: "omisego/childchain-builder"
 
   publish_tester:
     executor: buildpack
