@@ -267,7 +267,7 @@ jobs:
       - setup_remote_docker
       - attach_workspace: *attach_workspace
       - docker_build:
-          image: "omisegoimages/childchain-builder"
+          image: "omisego/childchain-builder"
           dockerfile: "builder_childchain/Dockerfile"
           export: "~/docker/childchain-builder.tar"
       - persist_to_workspace:
