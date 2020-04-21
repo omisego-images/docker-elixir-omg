@@ -75,6 +75,7 @@ commands:
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             fi
             ls data/geth
+            docker-compose logs | grep -q "Registering paymentV2ToPaymentV3Condition"
             docker-compose down && sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
 
   docker_import:
@@ -408,10 +409,6 @@ jobs:
       - attach_workspace: *attach_workspace
       - snapshot:
           min_exit_period: 20
-      - snapshot:
-          min_exit_period: 120
-      - snapshot:
-          min_exit_period: 240
       - run: 
           name: Gather all the snapshots and publish a release
           command: |
