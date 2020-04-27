@@ -8,6 +8,7 @@ services:
       - |
           apk add --update curl
           cd /home/node/plasma-contracts/plasma_framework
+          env
           # Fix block gas limit issue by retrying truffle migration up to 5 times
           for i in 1 2 3 4 5; do \
             echo 'Running truffle migration attempt #$${i}'
