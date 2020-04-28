@@ -17,7 +17,7 @@ COPY CONTRACT_SHA /tmp/CONTRACT_SHA
 COPY CONTRACT_REPO_NAME /tmp/CONTRACT_REPO_NAME
 
 # pass in token for prompt instead of git clone https://${GITHUB_TOKEN}@github.com... to avoid
-# leave the token data in .git/config
+# leaving the token data in .git/config
 RUN echo ${GITHUB_TOKEN} | git clone https://omisego-bot@github.com/omisego/$(cat /tmp/CONTRACT_REPO_NAME).git plasma-contracts
 RUN cd /home/node/plasma-contracts && git reset --hard $(cat /tmp/CONTRACT_SHA)
 RUN cd /home/node/plasma-contracts && npm install
