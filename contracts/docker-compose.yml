@@ -31,6 +31,7 @@ services:
       - REMOTE_URL=http://geth:8545
       - DEPLOY_TEST_CONTRACTS=true
       - MIN_EXIT_PERIOD=${MIN_EXIT_PERIOD}
+    env_file: ../tester/CONTRACT_EXPERIMENTAL_FEATURES
     depends_on:
       geth:
         condition: service_healthy

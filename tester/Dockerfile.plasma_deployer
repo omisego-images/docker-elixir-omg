@@ -16,9 +16,9 @@ RUN apk add --update \
 COPY CONTRACT_SHA /tmp/CONTRACT_SHA
 COPY CONTRACT_REPO_NAME /tmp/CONTRACT_REPO_NAME
 
-RUN mkdir plasma-contracts/
-RUN cd /home/node/plasma-contracts && git init
-RUN cd /home/node/plasma-contracts && git pull https://${GITHUB_TOKEN}@github.com/omisego/$(cat /tmp/CONTRACT_REPO_NAME).git
+# pass in token for prompt instead of git clone https://${GITHUB_TOKEN}@github.com... to avoid
+# leaving the token data in .git/config
+RUN echo ${GITHUB_TOKEN} | git clone https://omisego-bot@github.com/omisego/$(cat /tmp/CONTRACT_REPO_NAME).git plasma-contracts
 RUN cd /home/node/plasma-contracts && git reset --hard $(cat /tmp/CONTRACT_SHA)
 RUN cd /home/node/plasma-contracts && npm install
 RUN cd /home/node/plasma-contracts/plasma_framework && npm install
