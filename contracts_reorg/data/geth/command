@@ -1,0 +1,29 @@
+apk add --update curl
+echo "" > /tmp/geth-password
+echo ${ACCOUNT}
+
+if ${INIT}
+then
+  geth --datadir data init ./data/geth/genesis.json
+fi
+
+geth --datadir data/ \
+--bootnodes ${BOOTNODES} \
+--keystore=data/geth/keystore/ \
+--networkid "1337" \
+--gasprice "1" \
+--unlock "0,1" \
+--password /tmp/geth-password \
+--mine --minerthreads=1 \
+--etherbase ${ACCOUNT} \
+--nat extip:`hostname -i` \
+--syncmode="full" \
+--allow-insecure-unlock \
+--rpc \
+--rpcaddr "0.0.0.0" \
+--rpcapi "personal,eth,web3,net,admin,debug,db" \
+--rpccorsdomain "*" \
+--rpcvhosts=* \
+--miner.gastarget 7500000 \
+--miner.gasprice "10" \
+--ws --wsaddr 0.0.0.0 --wsorigins='*'

@@ -1,0 +1,64 @@
+version: "3"
+services:
+  node-1:
+    image: ethereum/client-go:v1.9.15
+    hostname: node-1
+    environment:
+      - ACCOUNT=0x8404AFE09D770271c935019F9f774CBA2bea291d
+      - BOOTNODES=enode://a7359bd8b71d6bd605cfbef9b389f50a822bd471b883fa5d9e700fe9e854dc1309fe86a09bffb66091211723c351c056203aefb9bb75018059069f80cee50747@172.25.0.103:30303
+      - INIT=true
+    entrypoint: /bin/sh -c ". data/geth/command"
+    ports:
+      - 9000:8545
+    container_name: node-1
+    volumes:
+      - ./data:/data
+      - ./ethash:/root/.ethash
+    networks:
+      chain:
+        ipv4_address: 172.25.0.102
+
+  plasma-contracts:
+    image: omisegoimages/${IMAGE}
+    command:
+      - /bin/sh
+      - -c
+      - |
+          cd /home/node/plasma-contracts/plasma_framework
+          # Fix block gas limit issue by retrying truffle migration up to 5 times
+          for i in 1 2 3 4 5; do \
+            echo 'Running truffle migration attempt'
+            npx truffle migrate --network remote && break; \
+          done
+          cd build
+          echo '{"contracts":' > db.json && cat outputs.json >> db.json && echo '}' >> db.json
+          npx json-server -w db.json -p 8000 -H 0.0.0.0
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    volumes:
+      - ${PWD}/plasma-contracts/contracts/:/home/node/plasma-contracts/plasma_framework/build/contracts/
+      - ${PWD}/plasma-contracts/build/db.json:/home/node/plasma-contracts/plasma_framework/build/db.json
+    environment:
+      # DEPLOYER_PRIVATEKEY is the geth dev account initially funded address
+      - DEPLOYER_PRIVATEKEY=d885a307e35738f773d8c9c63c7a3f3977819274638d04aaf934a1e1158513ce # 0x6De4b3B9C28E9C3e84c2b2d3a875C947a84de68D
+      - MAINTAINER_PRIVATEKEY=e91a81533b61281b920784e0bad25c19b3671639d86e643bf1e60ec8c2244f8a # 0x249887184fa60f91a213d40efec358161abc1f0d
+      - AUTHORITY_PRIVATEKEY=7f30f140fd4724519e5017c0895f158d68bbbe4a81c0c10dbb25a0006e348807 # 0xC0f780DfC35075979B0DEF588d999225B7ecC56f
+      - REMOTE_URL=http://172.25.0.102:8545
+      - DEPLOY_TEST_CONTRACTS=true
+      - MIN_EXIT_PERIOD=120
+    env_file: ../tester/CONTRACT_EXPERIMENTAL_FEATURES
+    depends_on:
+      - node-1
+    restart: always
+    networks:
+      chain:
+        ipv4_address: 172.25.0.105
+
+networks:
+  chain:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.25.0.0/24
