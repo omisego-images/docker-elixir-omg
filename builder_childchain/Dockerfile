@@ -22,6 +22,9 @@ ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH=~/.cargo/bin/:$PATH
+
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
