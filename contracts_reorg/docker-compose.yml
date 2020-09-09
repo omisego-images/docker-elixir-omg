@@ -26,6 +26,7 @@ services:
       - |
           cd /home/node/plasma-contracts/plasma_framework
           # Fix block gas limit issue by retrying truffle migration up to 5 times
+          npx truffle version
           for i in 1 2 3 4 5; do \
             echo 'Running truffle migration attempt'
             npx truffle migrate --network remote && break; \
