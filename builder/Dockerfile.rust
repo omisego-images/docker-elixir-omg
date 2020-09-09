@@ -4,6 +4,6 @@ ARG RUST_VERSION="1.46.0"
 
 RUN apk add curl && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-RUN rustup toolchain install ${RUST_VERSION}
-
 ENV PATH=~/.cargo/bin/:$PATH
+
+RUN rustup toolchain install ${RUST_VERSION}
