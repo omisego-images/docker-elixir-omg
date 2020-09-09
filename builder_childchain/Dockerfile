@@ -23,9 +23,7 @@ ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
 ENV PATH=/root/.cargo/bin:$PATH
-
-RUN apk add curl && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH=~/.cargo/bin/:$PATH
+RUN rustup
 
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
