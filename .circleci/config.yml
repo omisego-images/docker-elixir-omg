@@ -549,6 +549,9 @@ workflows:
       - build_builder_rocksdb:
           requires:
             - setup
+      - build_builder_rust:
+          requires:
+            - setup
       - build_builder:
           requires:
             - build_builder_rocksdb
