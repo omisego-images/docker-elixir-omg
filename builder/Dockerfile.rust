@@ -9,3 +9,4 @@ RUN ./rustup.sh -y
 ENV PATH=/root/.cargo/bin:$PATH
 
 RUN rustup toolchain install ${RUST_VERSION}
+RUN rustup default ${RUST_VERSION}
