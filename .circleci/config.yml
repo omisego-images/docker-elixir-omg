@@ -314,6 +314,20 @@ jobs:
           paths:
             - docker/omisegoimages_elixir-omg_builder_elixir.tar
 
+  build_builder_rust:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/elixir-omg-builder-rust"
+          dockerfile: "builder/Dockerfile.rust"
+          export: "~/docker/omisegoimages_elixir-omg_builder_rust.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_elixir-omg_builder_rust.tar
+
   build_builder_rocksdb:
     executor: buildpack
     steps:
@@ -542,6 +556,7 @@ workflows:
       - build_childchain_builder:
           requires:
             - build_builder_elixir
+            - build_builder_rust
       - publish_builder:
           requires:
             - build_builder
