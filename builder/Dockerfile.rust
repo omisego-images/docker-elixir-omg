@@ -2,8 +2,8 @@ FROM alpine:3.11
 
 ARG RUST_VERSION="1.46.0"
 
-RUN apk add curl && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | tee rustup.sh
-RUN sha256sum rustup.sh -c <(echo "a748a107dd0c6146e7f8a40f9d0fde29e19b3e8234d2de7e522a1fea15048e70  -")
+ADD ./rustup.sh ./rustup.sh
+RUN chmod u+x ./rustup.sh
 RUN ./rustup.sh | sh -s -- -y
 
 ENV PATH=/root/.cargo/bin:$PATH
