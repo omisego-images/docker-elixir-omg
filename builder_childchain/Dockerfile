@@ -23,7 +23,6 @@ ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
 ENV PATH=/root/.cargo/bin:$PATH
-RUN rustup show
 
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
