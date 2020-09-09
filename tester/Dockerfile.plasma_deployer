@@ -1,4 +1,4 @@
-FROM node:10-alpine
+FROM node:10.22-alpine
 
 MAINTAINER OmiseGO Engineering <info@omisego.co>
 
@@ -19,7 +19,6 @@ COPY CONTRACT_REPO_NAME /tmp/CONTRACT_REPO_NAME
 # pass in token for prompt instead of git clone https://${GITHUB_TOKEN}@github.com... to avoid
 # leaving the token data in .git/config
 RUN echo ${GITHUB_TOKEN} | git clone https://omisego-bot@github.com/omisego/$(cat /tmp/CONTRACT_REPO_NAME).git plasma-contracts
-RUN npm i -g eth-json-rpc-filters
 RUN cd /home/node/plasma-contracts && git reset --hard $(cat /tmp/CONTRACT_SHA)
 RUN cd /home/node/plasma-contracts && npm install
 RUN cd /home/node/plasma-contracts/plasma_framework && npm install
