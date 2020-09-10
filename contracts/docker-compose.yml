@@ -9,6 +9,7 @@ services:
           apk add --update curl
           cd /home/node/plasma-contracts/plasma_framework
           # Fix block gas limit issue by retrying truffle migration up to 5 times
+          npx truffle version
           for i in 1 2 3 4 5; do \
             echo 'Running truffle migration attempt #$${i}'
             npx truffle migrate --network remote command && break; \
@@ -59,7 +60,7 @@ services:
           geth --datadir data/ init data/geth/genesis.json
           echo "" > /tmp/geth-blank-password
           # Starts geth
-          
+
           geth --miner.gastarget 7500000 \
             --miner.gasprice "10" \
             --datadir data/ \
@@ -73,7 +74,7 @@ services:
             --ws --wsaddr 0.0.0.0 --wsorigins='*' \
             --mine \
             --allow-insecure-unlock
-            
+
     ports:
       - "8545:8545"
       - "8546:8546"
