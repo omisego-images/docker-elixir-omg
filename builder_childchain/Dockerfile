@@ -39,6 +39,8 @@ RUN set -xe \
         docker \
         expect \
         findutils \
+        gcc \
+        musl-dev \
         git \
         gnupg \
         libressl \
