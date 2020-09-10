@@ -7,6 +7,7 @@ ARG USER=childchain
 ARG GROUP=childchain
 ARG UID=10000
 ARG GID=10000
+ARG RUST_VERSION="1.46.0"
 
 COPY --from=omisegoimages/elixir-omg-builder-erlang /usr/local/otp /usr/local/otp
 COPY --from=omisegoimages/elixir-omg-builder-erlang /usr/local/rebar3 /usr/local/rebar3
@@ -23,7 +24,8 @@ ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
 ENV PATH=/root/.cargo/bin:$PATH
-
+RUN rustup toolchain install ${RUST_VERSION}
+RUN rustup default ${RUST_VERSION}
 RUN rustc -V
 
 ENV HOME /home/${USER}
