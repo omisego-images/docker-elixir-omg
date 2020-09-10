@@ -24,6 +24,8 @@ ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
 ENV PATH=/root/.cargo/bin:$PATH
 
+RUN rustc -V
+
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
@@ -39,6 +41,8 @@ RUN set -xe \
         docker \
         expect \
         findutils \
+        gcc \
+        musl-dev \
         git \
         gnupg \
         libressl \
