@@ -26,7 +26,7 @@ ENV PATH=/usr/local/elixir/bin:$PATH
 ENV PATH=/root/.cargo/bin:$PATH
 RUN rustup toolchain install ${RUST_VERSION}
 RUN rustup default ${RUST_VERSION}
-RUN rustc -V
+RUN apk add --no-cache gcc musl-dev && rustc -V
 
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
@@ -43,8 +43,6 @@ RUN set -xe \
         docker \
         expect \
         findutils \
-        gcc \
-        musl-dev \
         git \
         gnupg \
         libressl \
