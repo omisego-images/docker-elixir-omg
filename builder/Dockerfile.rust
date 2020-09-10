@@ -2,7 +2,7 @@ FROM alpine:3.11
 
 ARG RUST_VERSION="1.46.0"
 
-RUN RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev
 
 ADD ./rustup.sh ./rustup.sh
 RUN chmod u+x ./rustup.sh
