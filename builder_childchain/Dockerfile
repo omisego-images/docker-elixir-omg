@@ -11,7 +11,6 @@ ARG GID=10000
 COPY --from=omisegoimages/elixir-omg-builder-erlang /usr/local/otp /usr/local/otp
 COPY --from=omisegoimages/elixir-omg-builder-erlang /usr/local/rebar3 /usr/local/rebar3
 COPY --from=omisegoimages/elixir-omg-builder-elixir /usr/local/elixir /usr/local/elixir
-COPY --from=omisegoimages/elixir-omg-builder-rust /root/.cargo/bin/ /root/.cargo/bin/
 
 ENV LD_LIBRARY_PATH=/usr/local/otp/lib:$LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=/usr/local/elixir/lib:$LD_LIBRARY_PATH
@@ -22,9 +21,8 @@ ENV CMAKE_PREFIX_PATH=/usr/local/elixir:$CMAKE_PREFIX_PATH
 ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
-ENV PATH=/root/.cargo/bin:$PATH
 
-RUN rustc -V
+RUN apk add --no-cache rust=1.39.0-r0 cargo=1.39.0-r0
 
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
@@ -41,8 +39,6 @@ RUN set -xe \
         docker \
         expect \
         findutils \
-        gcc \
-        musl-dev \
         git \
         gnupg \
         libressl \
