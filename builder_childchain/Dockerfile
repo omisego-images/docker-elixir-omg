@@ -22,7 +22,7 @@ ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
 
-RUN apk add --no-cache gcc musl-dev && apk add rust-1.39.0-r0 cargo-1.39.0-r0
+RUN apk add --no-cache gcc musl-dev && apk add rust-1.40.0-alpine3.11 cargo-1.40.0-alpine3.11
 
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
