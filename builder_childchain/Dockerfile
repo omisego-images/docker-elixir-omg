@@ -22,8 +22,6 @@ ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
 
-RUN apk add --no-cache rust=1.44.0-r0 cargo=1.44.0-r0
-
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
@@ -43,6 +41,24 @@ RUN set -xe \
         gnupg \
         libressl \
         openssh \
+        rust=1.44.0-r0 \
+        cargo=1.44.0-r0 \
+ && apk add --no-cache --virtual .libsecp256k1-build \
+        autoconf \
+        automake \
+        gmp \
+        gmp-dev \
+        libtool \
+ && rm -rf "$HOME/.cache" \
+ && RUN_DEPS="$( \
+        find /usr/local -type f -executable -not \( -name '*tkinter*' \) -exec \
+            scanelf --needed --nobanner --format '%n#p' '{}' ';' \
+            | tr ',' '\n' \
+            | sort -u \
+            | awk '! /^$/ && system("test -z $(find /usr/local -iname " $1 ")") == 0 { print "so:" $1 }' \
+    )" \
+ && apk add --update --no-cache --virtual .run-deps \
+        $RUN_DEPS \
         ca-certificates \
         libressl-dev \
         lksctp-tools \
