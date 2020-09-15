@@ -1,4 +1,4 @@
-FROM alpine:3.11
+FROM alpine:3.12
 
 LABEL maintainer="OmiseGO Team <omg@omise.co>"
 LABEL description="Thin Builder image for OmiseGO Childchain"
@@ -21,8 +21,6 @@ ENV CMAKE_PREFIX_PATH=/usr/local/elixir:$CMAKE_PREFIX_PATH
 ENV PATH=/usr/local/otp/bin:$PATH
 ENV PATH=/usr/local/rebar3/bin:$PATH
 ENV PATH=/usr/local/elixir/bin:$PATH
-
-RUN apk add --no-cache rust=1.39.0-r0 cargo=1.39.0-r0
 
 ENV HOME /home/${USER}
 ENV LANG=en_US.UTF-8
@@ -62,6 +60,7 @@ RUN set -xe \
         ca-certificates \
         libressl-dev \
         lksctp-tools \
+ && apk add --no-cache rust=1.44.0-r0 cargo=1.44.0-r0 \
  && addgroup -g ${GID} ${GROUP} \
  && adduser -D -h ${HOME} -u ${UID} -G ${GROUP} -H ${USER} \
  && mkdir -p "${HOME}" \
