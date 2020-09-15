@@ -41,8 +41,6 @@ RUN set -xe \
         gnupg \
         libressl \
         openssh \
-        rust=1.44.0-r0 \
-        cargo=1.44.0-r0 \
  && apk add --no-cache --virtual .libsecp256k1-build \
         autoconf \
         automake \
@@ -62,6 +60,7 @@ RUN set -xe \
         ca-certificates \
         libressl-dev \
         lksctp-tools \
+ && apk add --no-cache rust=1.44.0-r0 cargo=1.44.0-r0 \
  && addgroup -g ${GID} ${GROUP} \
  && adduser -D -h ${HOME} -u ${UID} -G ${GROUP} -H ${USER} \
  && mkdir -p "${HOME}" \
