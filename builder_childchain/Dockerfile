@@ -43,12 +43,6 @@ RUN set -xe \
         gnupg \
         libressl \
         openssh \
- && apk add --no-cache --virtual .libsecp256k1-build \
-        autoconf \
-        automake \
-        gmp \
-        gmp-dev \
-        libtool \
  && rm -rf "$HOME/.cache" \
  && RUN_DEPS="$( \
         find /usr/local -type f -executable -not \( -name '*tkinter*' \) -exec \
