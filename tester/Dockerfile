@@ -1,4 +1,4 @@
-FROM alpine:3.11
+FROM alpine:3.12
 
 LABEL maintainer="OmiseGO Team <omg@omise.co>"
 LABEL description="Builder image for OmiseGO elixir-omg"
