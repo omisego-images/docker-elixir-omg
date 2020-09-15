@@ -43,16 +43,6 @@ RUN set -xe \
         gnupg \
         libressl \
         openssh \
- && rm -rf "$HOME/.cache" \
- && RUN_DEPS="$( \
-        find /usr/local -type f -executable -not \( -name '*tkinter*' \) -exec \
-            scanelf --needed --nobanner --format '%n#p' '{}' ';' \
-            | tr ',' '\n' \
-            | sort -u \
-            | awk '! /^$/ && system("test -z $(find /usr/local -iname " $1 ")") == 0 { print "so:" $1 }' \
-    )" \
- && apk add --update --no-cache --virtual .run-deps \
-        $RUN_DEPS \
         ca-certificates \
         libressl-dev \
         lksctp-tools \
