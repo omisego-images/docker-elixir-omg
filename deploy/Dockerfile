@@ -19,7 +19,7 @@ ARG CLOUD_SDK_DOWNLOAD_SHA256="10e08362e750581c6ff3866314ed439a1bb544755657b204b
 
 RUN set -xe \
  && apk add --update --no-cache --virtual .gcloud-runtime \
-        python \
+        python2 \
         py-crcmod \
         libc6-compat \
  && CLOUD_SDK_DOWNLOAD_URL="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${CLOUD_SDK_VERSION}-linux-x86_64.tar.gz" \
