@@ -45,7 +45,7 @@ services:
       start_period: 5m
 
   geth:
-    image: ethereum/client-go:v1.9.12
+    image: ethereum/client-go:v1.9.21
     entrypoint:
       - /bin/sh
       - -c
