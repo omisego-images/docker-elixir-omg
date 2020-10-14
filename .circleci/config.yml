@@ -409,6 +409,16 @@ jobs:
       - docker_push:
           image: "omisegoimages/elixir-omg-builder"
 
+  publish_perf:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_import:
+          path: "~/docker"
+      - docker_push:
+          image: "omisegoimages/perf"
+
   publish_childchain_builder:
     executor: buildpack
     steps:
@@ -548,6 +558,7 @@ workflows:
       - publish_childchain_builder:
           requires:
             - build_childchain_builder
+      - publish_perf
 
       - build_tester_geth:
           requires:
