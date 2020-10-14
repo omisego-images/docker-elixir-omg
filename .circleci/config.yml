@@ -575,8 +575,10 @@ workflows:
       - publish_perf:
           requires:
             - build_perf
-
       - build_tester_geth:
+          requires:
+            - setup
+      - build_perf:
           requires:
             - setup
       - build_tester_plasma_deployer:
