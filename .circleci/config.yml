@@ -399,6 +399,20 @@ jobs:
           paths:
             - docker/omisegoimages_elixir-omg_tester.tar
 
+  build_perf:
+    executor: buildpack
+    steps:
+      - setup_remote_docker
+      - attach_workspace: *attach_workspace
+      - docker_build:
+          image: "omisegoimages/perf"
+          dockerfile: "perf/Dockerfile"
+          export: "~/docker/omisegoimages_perf.tar"
+      - persist_to_workspace:
+          <<: *persist_workspace
+          paths:
+            - docker/omisegoimages_perf.tar
+
   publish_builder:
     executor: buildpack
     steps:
@@ -558,7 +572,9 @@ workflows:
       - publish_childchain_builder:
           requires:
             - build_childchain_builder
-      - publish_perf
+      - publish_perf:
+          requires:
+            - build_perf
 
       - build_tester_geth:
           requires:
