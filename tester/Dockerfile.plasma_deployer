@@ -11,7 +11,8 @@ RUN apk add --update \
     python-dev \
     py-pip \
     build-base \
-    git
+    git \
+    jq
 
 COPY CONTRACT_SHA /tmp/CONTRACT_SHA
 COPY CONTRACT_REPO_NAME /tmp/CONTRACT_REPO_NAME
@@ -24,3 +25,8 @@ RUN cd /home/node/plasma-contracts && git reset --hard $(cat /tmp/CONTRACT_SHA)
 RUN cd /home/node/plasma-contracts && npm install
 RUN cd /home/node/plasma-contracts/plasma_framework && rm -Rf ./build
 RUN cd /home/node/plasma-contracts/plasma_framework && npm install
+RUN cd /home/node/plasma-contracts/ && git submodule init
+RUN cd /home/node/plasma-contracts/ && git submodule update --remote
+RUN cd /home/node/plasma-contracts/MultiSigWalletOverride && make init_multisig
+RUN cd /home/node/plasma-contracts/MultiSigWallet && npm install
+
