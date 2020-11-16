@@ -24,12 +24,18 @@ services:
       - /bin/sh
       - -c
       - |
+          # deploy the multisig
+          cd /home/node/plasma-contracts/MultiSigWallet
+          npx truffle migrate --accounts 0x6De4b3B9C28E9C3e84c2b2d3a875C947a84de68D --confirmations 1 --network remote
+          apk add --update curl
           cd /home/node/plasma-contracts/plasma_framework
           # Fix block gas limit issue by retrying truffle migration up to 5 times
           npx truffle version
+          export VAULT_TOKEN=$$(cat /tmp/unseal.json | jq -r .root_token)
+          echo $$VAULT_TOKEN
           for i in 1 2 3 4 5; do \
-            echo 'Running truffle migration attempt'
-            npx truffle migrate --network remote && break; \
+            echo 'Running truffle migration attempt #$${i}'
+            npx truffle migrate --network remote command && break; \
           done
           cd build
           echo '{"contracts":' > db.json && cat outputs.json >> db.json && echo '}' >> db.json
@@ -41,6 +47,7 @@ services:
     volumes:
       - ${PWD}/plasma-contracts/contracts/:/home/node/plasma-contracts/plasma_framework/build/contracts/
       - ${PWD}/plasma-contracts/build/db.json:/home/node/plasma-contracts/plasma_framework/build/db.json
+      - "./immutability/config:/tmp:rw"
     environment:
       # DEPLOYER_PRIVATEKEY is the geth dev account initially funded address
       - DEPLOYER_PRIVATEKEY=d885a307e35738f773d8c9c63c7a3f3977819274638d04aaf934a1e1158513ce # 0x6De4b3B9C28E9C3e84c2b2d3a875C947a84de68D
@@ -49,6 +56,10 @@ services:
       - REMOTE_URL=http://172.25.0.102:8545
       - DEPLOY_TEST_CONTRACTS=true
       - MIN_EXIT_PERIOD=120
+      - VAULT=false
+      - VAULT_ADDR=https://172.25.0.155:8200
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - VAULT_RPC_REMOTE_URL=http://172.25.0.102:8545
     env_file: ../tester/CONTRACT_EXPERIMENTAL_FEATURES
     depends_on:
       - node-1
@@ -56,6 +67,28 @@ services:
     networks:
       chain:
         ipv4_address: 172.25.0.105
+
+  vault_server:
+    image: gcr.io/omisego-development/omgnetwork/vault:0.0.6
+    entrypoint: >
+      /bin/sh -c "
+        sleep 2
+        /home/vault/config/entrypoint.sh
+      "
+    ports:
+      - "8200:8200"
+    volumes:
+      - "./immutability/ca:/home/vault/ca:rw"
+      - "./immutability/ca/certs/:/etc/ssl/certs/"
+      - "./immutability/config:/home/vault/config:rw"
+    healthcheck:
+      test: vault status --tls-skip-verify
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      chain:
+        ipv4_address: 172.25.0.155
 
 networks:
   chain:

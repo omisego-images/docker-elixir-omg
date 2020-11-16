@@ -6,10 +6,15 @@ services:
       - /bin/sh
       - -c
       - |
+          # deploy the multisig
+          cd /home/node/plasma-contracts/MultiSigWallet
+          npx truffle migrate --accounts 0x6De4b3B9C28E9C3e84c2b2d3a875C947a84de68D --confirmations 1 --network remote
           apk add --update curl
           cd /home/node/plasma-contracts/plasma_framework
           # Fix block gas limit issue by retrying truffle migration up to 5 times
           npx truffle version
+          export VAULT_TOKEN=$$(cat /tmp/unseal.json | jq -r .root_token)
+          echo $$VAULT_TOKEN
           for i in 1 2 3 4 5; do \
             echo 'Running truffle migration attempt #$${i}'
             npx truffle migrate --network remote command && break; \
@@ -24,6 +29,7 @@ services:
     volumes:
       - ${PWD}/plasma-contracts/contracts/:/home/node/plasma-contracts/plasma_framework/build/contracts/
       - ${PWD}/plasma-contracts/build/db.json:/home/node/plasma-contracts/plasma_framework/build/db.json
+      - "./immutability/config:/tmp:rw"
     environment:
       # DEPLOYER_PRIVATEKEY is the geth dev account initially funded address
       - DEPLOYER_PRIVATEKEY=d885a307e35738f773d8c9c63c7a3f3977819274638d04aaf934a1e1158513ce # 0x6De4b3B9C28E9C3e84c2b2d3a875C947a84de68D
@@ -32,9 +38,17 @@ services:
       - REMOTE_URL=http://geth:8545
       - DEPLOY_TEST_CONTRACTS=true
       - MIN_EXIT_PERIOD=${MIN_EXIT_PERIOD}
+      # HEY THIS IS IMPORTANT
+      - VAULT=false
+      - VAULT_ADDR=https://vault_server:8200
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - VAULT_RPC_REMOTE_URL=http://geth:8545
+      - CHAIN_ID=1337
     env_file: ../tester/CONTRACT_EXPERIMENTAL_FEATURES
     depends_on:
       geth:
+        condition: service_healthy
+      vault_server:
         condition: service_healthy
     restart: always
     healthcheck:
@@ -45,36 +59,8 @@ services:
       start_period: 5m
 
   geth:
-    image: ethereum/client-go:v1.9.15
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-          # don't run --allow-insecure-unlock in production!
-          apk add --update curl
-          # Configures geth with the deployer and authority accounts. This includes:
-          #   1. Configuring the deployer's keystore
-          #   2. Configuring the authority's keystore
-          #   3. Configuring the keystores' password
-          #   4. Unlocking the accounts by their indexes
-          geth --datadir data/ init data/geth/genesis.json
-          echo "" > /tmp/geth-blank-password
-          # Starts geth
-
-          geth --miner.gastarget 7500000 \
-            --miner.gasprice "10" \
-            --datadir data/ \
-            --syncmode 'full' \
-            --networkid 1337 \
-            --gasprice '1' \
-            --keystore=./data/geth/keystore/ \
-            --password /tmp/geth-blank-password \
-            --unlock "0,1" \
-            --rpc --rpcapi personal,web3,eth,net --rpcaddr 0.0.0.0 --rpcvhosts=* --rpcport=8545 \
-            --ws --wsaddr 0.0.0.0 --wsorigins='*' \
-            --mine \
-            --allow-insecure-unlock
-
+    image: ethereum/client-go:v1.9.12
+    entrypoint: /bin/sh -c ". data/command"
     ports:
       - "8545:8545"
       - "8546:8546"
@@ -88,3 +74,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  vault_server:
+    image: gcr.io/omisego-development/omgnetwork/vault:0.0.6
+    entrypoint: >
+      /bin/sh -c "
+        sleep 2
+
+        /home/vault/config/entrypoint.sh
+      "
+    ports:
+      - "8200:8200"
+    links:
+      - "geth"
+    volumes:
+      - "./immutability/ca:/home/vault/ca:rw"
+      - "./immutability/ca/certs/:/etc/ssl/certs/"
+      - "./immutability/config:/home/vault/config:rw"
+    healthcheck:
+      test: vault status --tls-skip-verify
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
