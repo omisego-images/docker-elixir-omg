@@ -99,7 +99,6 @@ commands:
           name: Get Plasma Deployer image and standup geth and deploy contracts
           no_output_timeout: 40m
           command: |
-            set -xe
             IMAGE_NAME=elixir-omg-tester-plasma-deployer
             if [ "$CIRCLE_BRANCH" = "master" ]; then
               IMAGE_DATE="$(date -u +%Y%m%d)"
