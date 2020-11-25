@@ -71,7 +71,7 @@ commands:
               echo $(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq -r '.'${KEYS[i]} | tr -d '"') > plasma-contracts/build/"${KEYS[i]}"
             done
             # at this point we snapshot folders we're interested in
-            sudo tar czf ${TAR_NAME} data/geth plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA immutability/config/
+            sudo tar czf ${TAR_NAME} data/geth plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA
             export BOTO_CONFIG=/dev/null
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts
             echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
