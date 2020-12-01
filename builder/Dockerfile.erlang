@@ -1,7 +1,7 @@
 FROM alpine:3.12
 
-ARG OTP_VERSION="22.3"
-ARG OTP_DOWNLOAD_SHA256="886e6dbe1e4823c7e8d9c9c1ba8315075a1a9f7717f5a1eaf3b98345ca6c798e"
+ARG OTP_VERSION="23.1.4"
+ARG OTP_DOWNLOAD_SHA256="8f6718b82bbca72d7dfe0b0de10b6e043cefe9e5ac08d3f84e18f8522d794967"
 
 RUN set -xe \
  && OTP_DOWNLOAD_URL="https://github.com/erlang/otp/archive/OTP-${OTP_VERSION}.tar.gz" \
@@ -15,12 +15,13 @@ RUN set -xe \
         gcc \
         libc-dev \
         libressl-dev \
+        openssl-dev \
+        zlib-dev \
         linux-headers \
         lksctp-tools-dev \
         make \
         ncurses-dev \
         tar \
-        unixodbc-dev \
  && curl -fsL -o otp-src.tar.gz "${OTP_DOWNLOAD_URL}" \
  && echo "${OTP_DOWNLOAD_SHA256}  otp-src.tar.gz" |sha256sum -c - \
  && mkdir -vp /usr/local/src/otp \
@@ -54,8 +55,8 @@ RUN set -xe \
 ENV PATH=/usr/local/otp/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/otp/lib:$LD_LIBRARY_PATH
 
-ARG REBAR3_VERSION="3.8.0"
-ARG REBAR3_DOWNLOAD_SHA256="fc4d08037d39bcc651a4a749f8a5b1a10b2205527df834c2aee8f60725c3f431"
+ARG REBAR3_VERSION="3.14.2"
+ARG REBAR3_DOWNLOAD_SHA256="19fcdc73debb90d405864f728e188cbc5b61c3939b911e58c0b59bf1619c4810"
 
 RUN set -xe \
  && apk add --update --no-cache --virtual .fetch-deps \

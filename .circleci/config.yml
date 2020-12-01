@@ -16,8 +16,8 @@ commands:
     steps:
       - run:
           name: Get Plasma Deployer image and standup geth and deploy contracts
+          working_directory: ~/project/contracts
           command: |
-            set -xe
             IMAGE_NAME=elixir-omg-tester-plasma-deployer
             if [ "$CIRCLE_BRANCH" = "master" ]; then
               IMAGE_DATE="$(date -u +%Y%m%d)"
@@ -26,21 +26,22 @@ commands:
               IMAGE_GIT=$(git rev-parse --short HEAD)
               TAG="$IMAGE_NAME:dev-$IMAGE_GIT"
             fi
-            cd contracts/
-            CONTRACT_SHA=$(cat ../tester/CONTRACT_SHA)
+            echo 'export TAG='${TAG} >> $BASH_ENV
+            # this docker compose up needs to be above the gcloud login because the credentials are different!
             MIN_EXIT_PERIOD=<< parameters.min_exit_period >> IMAGE=${TAG} docker-compose up -d
-            ### in the mean time, install gcloud requirements
-            wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-272.0.0-linux-x86_64.tar.gz -O gcloud-sdk.tar.gz
-            tar zxf gcloud-sdk.tar.gz google-cloud-sdk
-            mv google-cloud-sdk ~/.google-cloud-sdk
-            ~/.google-cloud-sdk/install.sh --quiet
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
-            ### done installing gcloud requirements
-            ### cleanup
-            rm -rf ~/.google-cloud-sdk
-            sleep 4m
+      - run: 
+          name: Docker logs
+          working_directory: ~/project/contracts
+          background: true
+          command: | 
+            docker-compose logs -f       
+      - run: 
+          name: Wait for contracts  
+          command: |
+            sleep 5m
             # wait until we're UP
             for i in {1..60}; do
               if [ "$(curl localhost:8000/contracts)" ]; then
@@ -48,10 +49,18 @@ commands:
               fi;
               sleep 1
             done
-            # stop geth in docker so that we can snapshot
+      - run:
+          name: Stop nodes
+          working_directory: ~/project/contracts
+          command: |
+            echo "stop geth in docker so that we can snapshot"
             docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
-            # ipc is not for cp
-            sudo rm -f data/geth.ipc
+            sudo rm -f data/geth.ipc 
+      - run:
+          name: Snapshot
+          working_directory: ~/project/contracts
+          command: |
+            CONTRACT_SHA=$(cat ../tester/CONTRACT_SHA)
             TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}.tar.gz | sed 's/:/-/')
             echo ${TAR_NAME}
             # for every key in object db.json create a file
@@ -61,6 +70,7 @@ commands:
             for i in "${!KEYS[@]}"; do
               echo $(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq -r '.'${KEYS[i]} | tr -d '"') > plasma-contracts/build/"${KEYS[i]}"
             done
+            # at this point we snapshot folders we're interested in
             sudo tar czf ${TAR_NAME} data/geth plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA
             export BOTO_CONFIG=/dev/null
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts
@@ -75,7 +85,8 @@ commands:
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             fi
             ls data/geth
-            docker-compose down && sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
+            docker-compose down 
+            sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
 
   snapshot_reorg:
     description: Deploy contracts to Geth via docker-compose with parametrized MIN_EXIT_PERIOD and expose addresses and snapshot URL
@@ -88,7 +99,6 @@ commands:
           name: Get Plasma Deployer image and standup geth and deploy contracts
           no_output_timeout: 40m
           command: |
-            set -xe
             IMAGE_NAME=elixir-omg-tester-plasma-deployer
             if [ "$CIRCLE_BRANCH" = "master" ]; then
               IMAGE_DATE="$(date -u +%Y%m%d)"
@@ -139,7 +149,7 @@ commands:
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts
             echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
             PLASMA_CONTRACTS=$(curl localhost:8000/contracts)
-            DATA=$(echo "Contracts snapshotted with MIN_EXIT_PERIOD for SHA ( ${CONTRACT_SHA} ): << parameters.min_exit_period >>.\r\n Snapshot located at: \r\n   https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}  \r\n  Contract addresses: \r\n ${PLASMA_CONTRACTS} " | jq -Rs '.')
+            DATA=$(echo "Contracts snapshotted with MIN_EXIT_PERIOD for SHA ( ${CONTRACT_SHA} ): << parameters.min_exit_period >>. Snapshot located at: https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}  \r\n  Contract addresses: \r\n ${PLASMA_CONTRACTS} " | jq -Rs '.')
             if [ "$CIRCLE_BRANCH" = "master" ]; then
               # append the data you would usually post as a comment to a file and create a release out of this file
               echo ${DATA} >> /tmp/release
@@ -148,8 +158,9 @@ commands:
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             fi
             ls data/geth
-            docker-compose down && sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
-
+            docker-compose down 
+            sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp 
+          
   docker_import:
     description: "Load Docker acrhive from the given directory"
     parameters:
