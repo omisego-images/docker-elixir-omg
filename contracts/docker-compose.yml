@@ -59,7 +59,7 @@ services:
       start_period: 5m
 
   geth:
-    image: ethereum/client-go:v1.9.15
+    image: ethereum/client-go:v1.9.24
     entrypoint: /bin/sh -c ". data/command"
     ports:
       - "8545:8545"
