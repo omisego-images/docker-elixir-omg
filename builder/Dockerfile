@@ -71,7 +71,8 @@ RUN set -xe \
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.46.0
+    RUST_VERSION=1.46.0 \
+    RUSTFLAGS="-C target-feature=-crt-static"
 
 RUN set -eux; \
     url="https://static.rust-lang.org/rustup/archive/1.22.1/x86_64-unknown-linux-musl/rustup-init"; \
