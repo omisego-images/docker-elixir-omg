@@ -63,7 +63,7 @@ RUN set -xe \
         ca-certificates \
         libressl-dev \
         lksctp-tools \
- && apk add --no-cache rust=1.44.0-r0 cargo=1.44.0-r0 \
+ && apk add --no-cache rust=1.46.0-r0 cargo=1.46.0-r0 \
  && addgroup -g ${GID} ${GROUP} \
  && adduser -D -h ${HOME} -u ${UID} -G ${GROUP} -H ${USER} \
  && mkdir -p "${HOME}" \
