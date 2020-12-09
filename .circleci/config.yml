@@ -35,26 +35,18 @@ commands:
             fi
             echo 'export TAG='${TAG} >> $BASH_ENV
             # this docker compose up needs to be above the gcloud login because the credentials are different!
-<<<<<<< HEAD
-            MIN_EXIT_PERIOD=<< parameters.min_exit_period >> IMAGE=${TAG} docker-compose up -d
-=======
             MIN_EXIT_PERIOD=<< parameters.min_exit_period >> IMAGE=${TAG} << parameters.docker_compose_command >>
->>>>>>> vault support, refactor snapshotting, checksum addresses from plasma contracts
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
-      - run: 
+      - run:
           name: Docker logs
           working_directory: ~/project/contracts
           background: true
-          command: | 
-<<<<<<< HEAD
-            docker-compose logs -f       
-=======
-            docker-compose logs -f        
->>>>>>> vault support, refactor snapshotting, checksum addresses from plasma contracts
-      - run: 
-          name: Wait for contracts  
+          command: |
+            docker-compose logs -f
+      - run:
+          name: Wait for contracts
           command: |
             sleep 5m
             # wait until we're UP
@@ -63,33 +55,21 @@ commands:
                 break
               fi;
               sleep 1
-<<<<<<< HEAD
             done
-=======
-            done  
->>>>>>> vault support, refactor snapshotting, checksum addresses from plasma contracts
       - run:
           name: Stop nodes
           working_directory: ~/project/contracts
           command: |
             echo "stop geth in docker so that we can snapshot"
             docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
-<<<<<<< HEAD
-            sudo rm -f data/geth.ipc 
-=======
             docker stop $(docker ps -aqf "name=vault_server")
             sudo rm -f data/geth.ipc
->>>>>>> vault support, refactor snapshotting, checksum addresses from plasma contracts
       - run:
           name: Snapshot
           working_directory: ~/project/contracts
           command: |
             CONTRACT_SHA=$(cat ../tester/CONTRACT_SHA)
-<<<<<<< HEAD
-            TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}.tar.gz | sed 's/:/-/')
-=======
             TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}-VAULT-<< parameters.vault >>.tar.gz | sed 's/:/-/')
->>>>>>> vault support, refactor snapshotting, checksum addresses from plasma contracts
             echo ${TAR_NAME}
             # for every key in object db.json create a file
             # where the key is the name of the file and the content of the file is it's value
@@ -99,11 +79,7 @@ commands:
               echo $(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq -r '.'${KEYS[i]} | tr -d '"') > plasma-contracts/build/"${KEYS[i]}"
             done
             # at this point we snapshot folders we're interested in
-<<<<<<< HEAD
-            sudo tar czf ${TAR_NAME} data/geth plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA
-=======
             sudo tar czf ${TAR_NAME} data/geth plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA immutability/config/
->>>>>>> vault support, refactor snapshotting, checksum addresses from plasma contracts
             export BOTO_CONFIG=/dev/null
             gsutil cp ${TAR_NAME} gs://circleci-docker-artifacts
             echo "https://storage.googleapis.com/circleci-docker-artifacts/${TAR_NAME}"
@@ -117,14 +93,10 @@ commands:
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             fi
             ls data/geth
-            docker-compose down 
-<<<<<<< HEAD
+            docker-compose down
             sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
-=======
-            sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp 
             sudo rm -rf immutability/config/data
             sudo rm -rf immutability/config/ca.crt immutability/config/ca.key immutability/config/ca.srl immutability/config/my-service.crt  immutability/config/my-service.csr immutability/config/my-service.key immutability/config/openssl.cnf immutability/config/unseal.json
->>>>>>> vault support, refactor snapshotting, checksum addresses from plasma contracts
 
   snapshot_reorg:
     description: Deploy contracts to Geth via docker-compose with parametrized MIN_EXIT_PERIOD and expose addresses and snapshot URL
@@ -152,14 +124,14 @@ commands:
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
       - run: timeout 25m docker-compose logs --follow || true
-      - run: 
+      - run:
           name: Docker logs
           working_directory: ~/project/contracts_reorg
           background: true
-          command: | 
-            docker-compose logs -f        
-      - run: 
-          name: Wait for contracts  
+          command: |
+            docker-compose logs -f
+      - run:
+          name: Wait for contracts
           no_output_timeout: 50m
           command: |
             sleep 30m
@@ -169,7 +141,7 @@ commands:
                 break
               fi;
               sleep 10
-            done  
+            done
       - run:
           name: Stop nodes
           working_directory: ~/project/contracts_reorg
@@ -182,7 +154,7 @@ commands:
           name: Get Plasma Deployer image and standup geth and deploy contracts
           no_output_timeout: 40m
           working_directory: ~/project/contracts_reorg
-          command: |          
+          command: |
             TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}-reorg.tar.gz | sed 's/:/-/')
             echo ${TAR_NAME}
             # for every key in object db.json create a file
@@ -206,15 +178,11 @@ commands:
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             fi
             ls data/geth
-            docker-compose down 
-            sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp 
-<<<<<<< HEAD
-          
-=======
+            docker-compose down
+            sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
             sudo rm -rf immutability/config/data
             sudo rm -rf immutability/config/ca.crt immutability/config/ca.key immutability/config/ca.srl immutability/config/my-service.crt  immutability/config/my-service.csr immutability/config/my-service.key immutability/config/openssl.cnf immutability/config/unseal.json
 
->>>>>>> vault support, refactor snapshotting, checksum addresses from plasma contracts
   docker_import:
     description: "Load Docker acrhive from the given directory"
     parameters:
