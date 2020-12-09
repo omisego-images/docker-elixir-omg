@@ -76,21 +76,21 @@ services:
       retries: 5
 
   vault_server:
-    image: gcr.io/omisego-development/omgnetwork/vault:0.0.6
+    image: gcr.io/omisego-development/omgnetwork/vault:0.0.7
     entrypoint: >
       /bin/sh -c "
         sleep 2
 
-        /home/vault/config/entrypoint.sh
+        /vault/config/entrypoint.sh
       "
     ports:
       - "8200:8200"
     links:
       - "geth"
     volumes:
-      - "./immutability/ca:/home/vault/ca:rw"
+      - "./immutability/ca:/vault/ca:rw"
       - "./immutability/ca/certs/:/etc/ssl/certs/"
-      - "./immutability/config:/home/vault/config:rw"
+      - "./immutability/config:/vault/config:rw"
     healthcheck:
       test: vault status --tls-skip-verify
       interval: 5s
