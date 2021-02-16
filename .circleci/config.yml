@@ -99,6 +99,7 @@ commands:
             sudo rm -rf immutability/config/ca.crt immutability/config/ca.key immutability/config/ca.srl immutability/config/my-service.crt  immutability/config/my-service.csr immutability/config/my-service.key immutability/config/openssl.cnf immutability/config/unseal.json
       - run:
           name: Has the deployment succeeded?
+          working_directory: ~/project/contracts
           command: |
             # "startStandardExitBondSize()" |> ABI.encode([]) |> ExPlasma.Encoding.to_hex()
             export PEG=$(cat plasma-contracts/build/payment_exit_game)
