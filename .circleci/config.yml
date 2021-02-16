@@ -541,25 +541,25 @@ jobs:
             sudo chmod -R 777 immutability/config/
       - snapshot:
           min_exit_period: 20
-          docker_compose_command: "docker-compose up -d"
+          docker_compose_command: "docker-compose -f docker-compose.yml -f docker-compose.vault.yml up -d"
+          vault: "true"
       - snapshot:
           min_exit_period: 120
-          docker_compose_command: "docker-compose up -d"
+          docker_compose_command: "docker-compose -f docker-compose.yml -f docker-compose.vault.yml up -d"
+          vault: "true"
       - snapshot:
           min_exit_period: 240
-          docker_compose_command: "docker-compose up -d"
+          docker_compose_command: "docker-compose -f docker-compose.yml -f docker-compose.vault.yml up -d"
+          vault: "true"
       - snapshot:
           min_exit_period: 20
-          docker_compose_command: "docker-compose -f docker-compose.yml -f docker-compose.vault.yml up -d"
-          vault: "true"
+          docker_compose_command: "docker-compose up -d"
       - snapshot:
           min_exit_period: 120
-          docker_compose_command: "docker-compose -f docker-compose.yml -f docker-compose.vault.yml up -d"
-          vault: "true"
+          docker_compose_command: "docker-compose up -d"
       - snapshot:
           min_exit_period: 240
-          docker_compose_command: "docker-compose -f docker-compose.yml -f docker-compose.vault.yml up -d"
-          vault: "true"
+          docker_compose_command: "docker-compose up -d"
       - run:
           name: Gather all the snapshots and publish a release
           command: |
