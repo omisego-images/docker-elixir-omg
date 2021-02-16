@@ -9,6 +9,7 @@ geth --datadir data/ init data/geth/genesis.json
 echo "" > /tmp/geth-blank-password
 # Starts geth
 geth \
+--nousb \
 --miner.gastarget 7500000 \
 --miner.gasprice "10" \
 --datadir data/ \
