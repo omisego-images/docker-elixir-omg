@@ -57,6 +57,29 @@ commands:
               sleep 1
             done
       - run:
+          name: Extract partial data from the deployment
+          working_directory: ~/project/contracts
+          command: |
+            CONTRACT_SHA=$(cat ../tester/CONTRACT_SHA)
+            TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}-VAULT-<< parameters.vault >>.tar.gz | sed 's/:/-/')
+            echo ${TAR_NAME}
+            # for every key in object db.json create a file
+            # where the key is the name of the file and the content of the file is it's value
+            # for example plasma-contracts/build/authority_address file has content 0xc0f780dfc35075979b0def588d999225b7ecc56f
+            KEYS=($(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq 'keys[]' | tr -d '"'))
+            for i in "${!KEYS[@]}"; do
+              echo $(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq -r '.'${KEYS[i]} | tr -d '"') > plasma-contracts/build/"${KEYS[i]}"
+            done
+      - run:
+          name: Has the deployment succeeded?
+          working_directory: ~/project/contracts
+          command: |
+            # "startStandardExitBondSize()" |> ABI.encode([]) |> ExPlasma.Encoding.to_hex()
+            export PEG=$(cat plasma-contracts/build/payment_exit_game)
+            response=$(curl -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method": "eth_call", "params": [{"from": "0xd6858A28aA07A1cd8cA285443e80E2b0A031d50d", "to": "'"$PEG"'", "data": "0xfe32a124"}, "latest"], "id": 8}' http://127.0.0.1:8545)
+            echo $response | jq -r '.'
+            echo $response | ( ! grep "error" )
+      - run:
           name: Stop nodes
           working_directory: ~/project/contracts
           command: |
@@ -70,14 +93,6 @@ commands:
           command: |
             CONTRACT_SHA=$(cat ../tester/CONTRACT_SHA)
             TAR_NAME=$(echo data-${TAG}-MIN_EXIT_PERIOD-<< parameters.min_exit_period >>-PLASMA_CONTRACTS_SHA-${CONTRACT_SHA}-VAULT-<< parameters.vault >>.tar.gz | sed 's/:/-/')
-            echo ${TAR_NAME}
-            # for every key in object db.json create a file
-            # where the key is the name of the file and the content of the file is it's value
-            # for example plasma-contracts/build/authority_address file has content 0xc0f780dfc35075979b0def588d999225b7ecc56f
-            KEYS=($(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq 'keys[]' | tr -d '"'))
-            for i in "${!KEYS[@]}"; do
-              echo $(cat plasma-contracts/build/db.json | jq -r '.contracts' | jq -r '.'${KEYS[i]} | tr -d '"') > plasma-contracts/build/"${KEYS[i]}"
-            done
             # at this point we snapshot folders we're interested in
             sudo tar czf ${TAR_NAME} data/geth plasma-contracts/contracts/ plasma-contracts/build/* ../tester/CONTRACT_SHA immutability/config/
             export BOTO_CONFIG=/dev/null
@@ -97,15 +112,6 @@ commands:
             sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
             sudo rm -rf immutability/config/data
             sudo rm -rf immutability/config/ca.crt immutability/config/ca.key immutability/config/ca.srl immutability/config/my-service.crt  immutability/config/my-service.csr immutability/config/my-service.key immutability/config/openssl.cnf immutability/config/unseal.json
-      - run:
-          name: Has the deployment succeeded?
-          working_directory: ~/project/contracts
-          command: |
-            # "startStandardExitBondSize()" |> ABI.encode([]) |> ExPlasma.Encoding.to_hex()
-            export PEG=$(cat plasma-contracts/build/payment_exit_game)
-            response=$(curl -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method": "eth_call", "params": [{"from": "0xd6858A28aA07A1cd8cA285443e80E2b0A031d50d", "to": "'"$PEG"'", "data": "0xfe32a124"}, "latest"], "id": 8}' http://127.0.0.1:8545)
-            echo $response | jq -r '.'
-            echo $response | ( ! grep "error" )
 
   snapshot_reorg:
     description: Deploy contracts to Geth via docker-compose with parametrized MIN_EXIT_PERIOD and expose addresses and snapshot URL
