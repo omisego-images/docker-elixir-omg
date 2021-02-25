@@ -48,7 +48,7 @@ commands:
       - run:
           name: Wait for contracts
           command: |
-            sleep 5m
+            sleep 20m
             # wait until we're UP
             for i in {1..60}; do
               if [ "$(curl localhost:8000/contracts)" ]; then
