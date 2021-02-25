@@ -26,4 +26,5 @@ geth --datadir data/ \
 --rpcvhosts=* \
 --miner.gastarget 7500000 \
 --miner.gasprice "10" \
---ws --wsaddr 0.0.0.0 --wsorigins='*'
+--ws --wsaddr 0.0.0.0 --wsorigins='*' \
+--netrestrict="127.0.0.1/8"
