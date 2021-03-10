@@ -15,7 +15,6 @@ geth \
 --datadir data/ \
 --syncmode 'full' \
 --networkid 1337 \
---gasprice '1' \
 --keystore=./data/geth/keystore/ \
 --password /tmp/geth-blank-password \
 --unlock "0,1" \
@@ -25,7 +24,5 @@ geth \
 --rpcvhosts=* \
 --rpcport=8545 \
 --ws \
---wsaddr 0.0.0.0 \
---wsorigins='*' \
 --mine \
 --allow-insecure-unlock
