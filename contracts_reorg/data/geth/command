@@ -11,7 +11,6 @@ geth --datadir data/ \
 --bootnodes ${BOOTNODES} \
 --keystore=data/geth/keystore/ \
 --networkid "1337" \
---gasprice "1" \
 --unlock "0,1" \
 --password /tmp/geth-password \
 --mine --minerthreads=1 \
@@ -24,6 +23,12 @@ geth --datadir data/ \
 --rpcapi "personal,eth,web3,net,admin,debug,db" \
 --rpccorsdomain "*" \
 --rpcvhosts=* \
+--rpc.allow-unprotected-txs \
 --miner.gastarget 7500000 \
 --miner.gasprice "10" \
---ws --wsaddr 0.0.0.0 --wsorigins='*'
+--netrestrict="127.0.0.1/8"
+
+# Since we realize people/tooling issuing unprotected transactions can’t change overnight,
+# Geth v1.10.0 supports reverting to the old behavior and accepting non-EIP155 transactions via --rpc.allow-unprotected-txs.
+# Be advised that this is a temporary mechanism that will be removed long term.
+
