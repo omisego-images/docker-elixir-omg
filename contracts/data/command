@@ -18,12 +18,15 @@ geth \
 --keystore=./data/geth/keystore/ \
 --password /tmp/geth-blank-password \
 --unlock "0,1" \
---rpc \
---rpcapi personal,web3,eth,net \
---rpcaddr 0.0.0.0 \
---rpcvhosts=* \
---rpcport=8545 \
+--http \
+--http.api personal,web3,eth,net \
+--http.addr 0.0.0.0 \
+--http.vhosts=* \
+--http.port 8545 \
 --ws \
+--ws.addr 0.0.0.0 \
+--ws.origins '*' \
+--ws.api personal,web3,eth,net \
 --rpc.allow-unprotected-txs \
 --mine \
 --allow-insecure-unlock

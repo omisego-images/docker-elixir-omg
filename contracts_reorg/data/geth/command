@@ -18,11 +18,15 @@ geth --datadir data/ \
 --nat extip:`hostname -i` \
 --syncmode="full" \
 --allow-insecure-unlock \
---rpc \
---rpcaddr "0.0.0.0" \
---rpcapi "personal,eth,web3,net,admin,debug,db" \
---rpccorsdomain "*" \
---rpcvhosts=* \
+--http \
+--http.api personal,web3,eth,net \
+--http.addr 0.0.0.0 \
+--http.vhosts=* \
+--http.port 8545 \
+--ws \
+--ws.addr 0.0.0.0 \
+--ws.origins '*' \
+--ws.api personal,web3,eth,net \
 --rpc.allow-unprotected-txs \
 --miner.gastarget 7500000 \
 --miner.gasprice "10" \
