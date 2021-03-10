@@ -24,5 +24,11 @@ geth \
 --rpcvhosts=* \
 --rpcport=8545 \
 --ws \
+--rpc.allow-unprotected-txs \
 --mine \
 --allow-insecure-unlock
+
+
+# Since we realize people/tooling issuing unprotected transactions can’t change overnight,
+# Geth v1.10.0 supports reverting to the old behavior and accepting non-EIP155 transactions via --rpc.allow-unprotected-txs.
+# Be advised that this is a temporary mechanism that will be removed long term.
