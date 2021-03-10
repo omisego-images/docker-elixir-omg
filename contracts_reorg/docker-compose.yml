@@ -1,7 +1,7 @@
 version: "3"
 services:
   node-1:
-    image: ethereum/client-go:v1.9.15
+    image: ethereum/client-go:v1.10.1
     hostname: node-1
     environment:
       - ACCOUNT=0x8404AFE09D770271c935019F9f774CBA2bea291d
