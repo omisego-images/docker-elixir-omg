@@ -32,14 +32,14 @@ commands:
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
-      - run: 
+      - run:
           name: Docker logs
           working_directory: ~/project/contracts
           background: true
-          command: | 
-            docker-compose logs -f       
-      - run: 
-          name: Wait for contracts  
+          command: |
+            docker-compose logs -f
+      - run:
+          name: Wait for contracts
           command: |
             sleep 5m
             # wait until we're UP
@@ -55,7 +55,7 @@ commands:
           command: |
             echo "stop geth in docker so that we can snapshot"
             docker exec -it $(docker ps -aqf "name=geth") /bin/sh -c "pkill -INT geth"
-            sudo rm -f data/geth.ipc 
+            sudo rm -f data/geth.ipc
       - run:
           name: Snapshot
           working_directory: ~/project/contracts
@@ -85,7 +85,7 @@ commands:
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             fi
             ls data/geth
-            docker-compose down 
+            docker-compose down
             sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
 
   snapshot_reorg:
@@ -158,9 +158,9 @@ commands:
               curl -H "Authorization: token ${GITHUB_TOKEN}" -X POST -d "{\"body\": ${DATA} }" "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/comments"
             fi
             ls data/geth
-            docker-compose down 
-            sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp 
-          
+            docker-compose down
+            sudo rm -rf data/geth/chaindata data/geth/LOCK data/geth/lightchaindata data/geth/nodekey data/geth/nodes data/geth/transactions.rlp
+
   docker_import:
     description: "Load Docker acrhive from the given directory"
     parameters:
@@ -494,8 +494,8 @@ jobs:
           min_exit_period: 20
       - snapshot:
           min_exit_period: 120
-      - snapshot:
-          min_exit_period: 240
+      # - snapshot:
+      #     min_exit_period: 240
       - run:
           name: Gather all the snapshots and publish a release
           command: |
