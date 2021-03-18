@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.13
 
 LABEL maintainer="OmiseGO Team <omg@omise.co>"
 LABEL description="Thin Builder image for OmiseGO Childchain"
