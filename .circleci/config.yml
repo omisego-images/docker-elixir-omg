@@ -3,7 +3,7 @@ version: 2.1
 executors:
   buildpack:
     docker:
-      - image: circleci/buildpack-deps:trusty
+      - image: circleci/buildpack-deps:xenial
     working_directory: ~/src
 
 commands:
@@ -251,7 +251,6 @@ commands:
         description: "Args to pass into docker file"
         default: ""
     steps:
-      - run: pip3 install docker-compose --upgrade
       - when:
           condition: <<parameters.import>>
           steps:
