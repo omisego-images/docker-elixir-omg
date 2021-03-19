@@ -343,7 +343,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisegoimages/elixir-omg-builder-erlang"
@@ -358,7 +358,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisegoimages/elixir-omg-builder-elixir"
@@ -373,7 +373,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisegoimages/elixir-omg-builder-rocksdb"
@@ -388,7 +388,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisegoimages/elixir-omg-builder"
@@ -403,7 +403,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisego/childchain-builder"
@@ -418,7 +418,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisegoimages/elixir-omg-tester-geth"
@@ -433,7 +433,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisegoimages/elixir-omg-tester-plasma-deployer"
@@ -449,7 +449,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisegoimages/elixir-omg-tester"
@@ -464,7 +464,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_import:
           path: "~/docker"
@@ -475,7 +475,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_import:
           path: "~/docker"
@@ -486,7 +486,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_import:
           path: "~/docker"
@@ -497,7 +497,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_import:
           path: "~/docker"
@@ -508,7 +508,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_build:
           image: "omisegoimages/elixir-omg-deploy"
@@ -523,7 +523,7 @@ jobs:
     executor: buildpack
     steps:
       - setup_remote_docker:
-          version: 19.03.15
+          version: 19.03.13
       - attach_workspace: *attach_workspace
       - docker_import:
           path: "~/docker"
