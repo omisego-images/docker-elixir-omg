@@ -139,7 +139,10 @@ commands:
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
-      - run: timeout 25m docker-compose logs --follow || true
+      - run:
+          working_directory: ~/project/contracts_reorg
+          command: |
+            timeout 25m docker-compose logs --follow || true
       - run:
           name: Docker logs
           working_directory: ~/project/contracts_reorg
@@ -248,6 +251,7 @@ commands:
         description: "Args to pass into docker file"
         default: ""
     steps:
+      - run: pip3 install docker-compose --upgrade
       - when:
           condition: <<parameters.import>>
           steps:
