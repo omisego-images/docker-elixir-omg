@@ -14,7 +14,7 @@ geth --datadir data/ \
 --unlock "0,1" \
 --password /tmp/geth-password \
 --mine \
---miner.rthreads 1 \
+--miner.threads 1 \
 --miner.gastarget 7500000 \
 --miner.gasprice "10" \
 --etherbase ${ACCOUNT} \
