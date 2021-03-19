@@ -13,7 +13,10 @@ geth --datadir data/ \
 --networkid "1337" \
 --unlock "0,1" \
 --password /tmp/geth-password \
---mine --minerthreads=1 \
+--mine \
+--miner.rthreads=1 \
+--miner.gastarget 7500000 \
+--miner.gasprice "10" \
 --etherbase ${ACCOUNT} \
 --nat extip:`hostname -i` \
 --syncmode="full" \
@@ -28,8 +31,6 @@ geth --datadir data/ \
 --ws.origins '*' \
 --ws.api personal,web3,eth,net \
 --rpc.allow-unprotected-txs \
---miner.gastarget 7500000 \
---miner.gasprice "10" \
 --netrestrict="127.0.0.1/8"
 
 # Since we realize people/tooling issuing unprotected transactions can’t change overnight,
