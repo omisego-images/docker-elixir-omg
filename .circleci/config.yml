@@ -143,6 +143,7 @@ commands:
           working_directory: ~/project/contracts_reorg
           command: |
             timeout 25m docker-compose logs --follow || true
+          background: true
       - run:
           name: Docker logs
           working_directory: ~/project/contracts_reorg
