@@ -17,7 +17,7 @@ geth --datadir data/ \
 --miner.threads 1 \
 --miner.gastarget 7500000 \
 --miner.gasprice "10" \
---etherbase ${ACCOUNT} \
+--miner.etherbase ${ACCOUNT} \
 --nat extip:`hostname -i` \
 --syncmode "full" \
 --allow-insecure-unlock \
