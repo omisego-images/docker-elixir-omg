@@ -30,8 +30,7 @@ geth --datadir data/ \
 --ws.addr 0.0.0.0 \
 --ws.origins '*' \
 --ws.api personal,web3,eth,net \
---rpc.allow-unprotected-txs \
---netrestrict "127.0.0.1/8"
+--rpc.allow-unprotected-txs
 
 # Since we realize people/tooling issuing unprotected transactions can’t change overnight,
 # Geth v1.10.0 supports reverting to the old behavior and accepting non-EIP155 transactions via --rpc.allow-unprotected-txs.
