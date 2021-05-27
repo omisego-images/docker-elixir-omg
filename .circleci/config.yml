@@ -379,7 +379,7 @@ jobs:
       - setup_remote_docker
       - attach_workspace: *attach_workspace
       - run: |
-          echo ${GITHUB_TOKEN} | git clone https://omisego-bot@github.com/omgnetwork/$(cat tester/CONTRACT_REPO_NAME).git plasma-contracts
+          echo ${GITHUB_TOKEN} | git clone https://omisego-bot@github.com/omgnetwork/$(cat tester/CONTRACT_REPO_NAME).git tester/plasma-contracts
       - docker_build:
           image: "omisegoimages/elixir-omg-tester-plasma-deployer"
           dockerfile: "tester/Dockerfile.plasma_deployer"
