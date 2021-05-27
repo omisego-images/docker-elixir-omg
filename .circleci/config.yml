@@ -205,10 +205,6 @@ commands:
         type: string
         description: "Path to persist Docker archive"
         default: "~/docker"
-      build-arg:
-        type: string
-        description: "Args to pass into docker file"
-        default: ""
     steps:
       - when:
           condition: <<parameters.import>>
@@ -226,11 +222,7 @@ commands:
             DIRNAME="$(dirname "$DOCKERFILE")"
 
             cd "$DIRNAME" || exit 1
-            if [ -z "<<parameters.build-arg>>" ]; then
-              docker build . --cache-from "<<parameters.image>>" -t "<<parameters.image>>" -f "$BASENAME"
-            else
-              docker build . --cache-from "<<parameters.image>>" -t "<<parameters.image>>" -f "$BASENAME" --build-arg <<parameters.build-arg>>
-            fi
+            docker build . --cache-from "<<parameters.image>>" -t "<<parameters.image>>" -f "$BASENAME"
       - when:
           condition: <<parameters.export>>
           steps:
@@ -386,11 +378,13 @@ jobs:
     steps:
       - setup_remote_docker
       - attach_workspace: *attach_workspace
+      - run: |
+          echo ${GITHUB_TOKEN} | git clone https://omisego-bot@github.com/omgnetwork/$(cat CONTRACT_REPO_NAME).git plasma-contracts
       - docker_build:
           image: "omisegoimages/elixir-omg-tester-plasma-deployer"
           dockerfile: "tester/Dockerfile.plasma_deployer"
           export: "~/docker/omisegoimages_elixir-omg_tester_plasma_deployer.tar"
-          build-arg: "GITHUB_TOKEN=${GITHUB_TOKEN}"
+
       - persist_to_workspace:
           <<: *persist_workspace
           paths:
